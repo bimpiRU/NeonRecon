@@ -1,0 +1,12 @@
+.git
+.buildozer
+bin
+venv
+__pycache__
+**/__pycache__
+*.pyc
+*.apk
+build.log
+*.md
+!README.md
+!DISCLAIMER.md

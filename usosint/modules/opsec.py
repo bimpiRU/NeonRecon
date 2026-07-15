@@ -1,5 +1,6 @@
 """Модуль операционной безопасности."""
 
+import os
 import random
 import subprocess
 
@@ -95,6 +96,31 @@ class TorManager:
         self.logger = logger
         self.executor = executor
 
+    def _systemd_available(self) -> bool:
+        """Проверить, что systemd реально работает (в WSL/контейнерах — нет)."""
+        import os
+        return check_tool("systemctl") and os.path.isdir("/run/systemd/system")
+
+    def _start_tor_direct(self) -> bool:
+        """Запустить tor напрямую как демон (без systemd), от имени пользователя."""
+        data_dir = os.path.join(os.path.expanduser("~"), ".usosint", "tor-data")
+        os.makedirs(data_dir, exist_ok=True)
+        self.logger.info("[OPSEC] systemd недоступен — запуск tor напрямую...")
+        self.executor.run_simple([
+            "tor", "--RunAsDaemon", "1",
+            "--DataDirectory", data_dir,
+            "--SocksPort", "9050",
+        ])
+        # дать tor поднять цепочки
+        import time
+        time.sleep(6)
+        probe = self.executor.run_simple(
+            ["curl", "-s", "--max-time", "15", "--socks5-hostname", "127.0.0.1:9050",
+             "https://api.ipify.org"],
+            timeout=25,
+        )
+        return bool(probe) and "[ERROR]" not in probe and "." in probe
+
     def start(self):
         """Запустить Tor и проверить proxychains."""
         self.logger.info("[OPSEC] Включение Tor-туннелирования...")
@@ -107,18 +133,22 @@ class TorManager:
             self.logger.error("[OPSEC] Утилита tor не найдена. Установите: sudo apt install tor")
             return
 
-        # Запуск Tor через systemd
-        self.executor.run_simple(["systemctl", "start", "tor"])
-        self.executor.run_simple(["systemctl", "enable", "tor"])
+        # Запуск Tor: systemd, иначе напрямую
+        if self._systemd_available():
+            self.executor.run_simple(["systemctl", "start", "tor"])
+            self.executor.run_simple(["systemctl", "enable", "tor"])
+        else:
+            self._start_tor_direct()
 
         # Проверка через proxychains
         if check_tool("proxychains4") and check_tool("curl"):
             self.logger.info("[OPSEC] Проверка цепочки proxychains4...")
             output = self.executor.run_simple(
-                ["proxychains4", "curl", "-s", "https://ipinfo.io/ip"],
-                timeout=30,
+                ["proxychains4", "curl", "-s", "--max-time", "20",
+                 "https://check.torproject.org/api/ip"],
+                timeout=40,
             )
-            if output and "[ERROR]" not in output:
+            if output and "[ERROR]" not in output and "timeout" not in output:
                 self.logger.success(f"[OPSEC] Tor активен. Внешний IP: {output}")
             else:
                 self.logger.warning(f"[OPSEC] Не удалось проверить IP: {output}")
@@ -128,9 +158,9 @@ class TorManager:
     def stop(self):
         """Остановить Tor."""
         self.logger.info("[OPSEC] Отключение Tor-туннелирования...")
-        if check_tool("systemctl"):
+        if self._systemd_available():
             self.executor.run_simple(["systemctl", "stop", "tor"])
             self.executor.run_simple(["systemctl", "disable", "tor"])
-            self.logger.success("[OPSEC] Tor остановлен.")
         else:
-            self.logger.warning("[OPSEC] systemctl не найден.")
+            self.executor.run_simple(["pkill", "-x", "tor"])
+        self.logger.success("[OPSEC] Tor остановлен.")

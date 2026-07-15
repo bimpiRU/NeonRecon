@@ -62,9 +62,9 @@ class USOSINTApp(MDApp):
         try:
             from usosint.core.platform import is_android
             if not is_android():
-                Window.size = (dp(1360), dp(860))
-                Window.minimum_width = dp(1024)
-                Window.minimum_height = dp(700)
+                Window.size = (1360, 860)
+                Window.minimum_width = 1024
+                Window.minimum_height = 700
         except Exception:
             pass
 

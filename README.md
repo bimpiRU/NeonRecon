@@ -107,6 +107,24 @@ buildozer -v android debug
 buildozer android deploy run
 ```
 
+## Docker
+
+Образ на базе Kali Linux со всеми инструментами (nmap, tor, proxychains4, tcpdump, macchanger, whois, subfinder, bettercap).
+
+```bash
+# сборка
+docker build -t neonrecon .
+
+# headless-запуск (GUI в виртуальном Xvfb — для тестов)
+docker run --rm neonrecon
+
+# с выводом GUI на хостовый X-сервер (Linux)
+xhost +local:docker
+docker run --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix neonrecon gui
+```
+
+Публикация в Docker Hub: `docker login && docker tag neonrecon <user>/neonrecon:0.3 && docker push <user>/neonrecon:0.3`.
+
 ## Структура проекта
 
 ```

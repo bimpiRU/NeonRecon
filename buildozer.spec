@@ -182,7 +182,10 @@ android.allow_backup = True
 # android.manifest_placeholders = [:]
 
 # (bool) Skip byte compile for .py files
-# android.no-byte-compile-python = False
+# True обязательно: buildozer-venv использует python 3.13, а на устройстве
+# python 3.11 — чужие .pyc не загружаются (bad magic number) и приложение
+# падает при старте. С True в APK попадают .py-исходники.
+android.no-byte-compile-python = True
 
 # (str) The format used to package the app for release mode (aab or apk or aar).
 # android.release_artifact = aab
