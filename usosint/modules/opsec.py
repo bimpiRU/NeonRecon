@@ -6,7 +6,7 @@ import subprocess
 
 from usosint.core.executor import CommandExecutor
 from usosint.core.logger import AppLogger
-from usosint.core.platform import check_tool, is_android, is_linux, is_root
+from usosint.core.platform import check_tool, is_android, is_linux, is_root, sudo_prefix
 
 
 class StealthMasking:
@@ -50,10 +50,14 @@ class StealthMasking:
             self.logger.warning("[OPSEC] Автоматическая смена hostname/MAC поддерживается только на Linux.")
             return
 
-        if not is_root():
-            self.logger.error("[OPSEC] Требуются root-права для смены hostname и MAC.")
+        if not is_root() and not sudo_prefix():
+            self.logger.error(
+                "[OPSEC] Нужен root или sudo: перезапустите приложение через sudo "
+                "или нажмите «Запросить root»."
+            )
             return
 
+        prefix = sudo_prefix()
         new_hostname = self._random_hostname()
         new_mac = self._random_mac()
         iface = self._detect_interface()
@@ -63,15 +67,15 @@ class StealthMasking:
         self.logger.info(f"[OPSEC] Интерфейс: {iface}")
 
         # Смена hostname
-        self.executor.run_simple(["hostnamectl", "set-hostname", new_hostname])
+        self.executor.run_simple(prefix + ["hostnamectl", "set-hostname", new_hostname])
 
         # Смена MAC
         if check_tool("ip"):
-            self.executor.run_simple(["ip", "link", "set", "dev", iface, "down"])
-            self.executor.run_simple(["ip", "link", "set", "dev", iface, "address", new_mac])
-            self.executor.run_simple(["ip", "link", "set", "dev", iface, "up"])
+            self.executor.run_simple(prefix + ["ip", "link", "set", "dev", iface, "down"])
+            self.executor.run_simple(prefix + ["ip", "link", "set", "dev", iface, "address", new_mac])
+            self.executor.run_simple(prefix + ["ip", "link", "set", "dev", iface, "up"])
         elif check_tool("macchanger"):
-            self.executor.run_simple(["macchanger", "-m", new_mac, iface])
+            self.executor.run_simple(prefix + ["macchanger", "-m", new_mac, iface])
         else:
             self.logger.warning("[OPSEC] Не найдены утилиты ip/macchanger для смены MAC.")
 

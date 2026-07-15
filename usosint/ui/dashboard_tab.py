@@ -19,7 +19,7 @@ from usosint.ui.widgets import StatusChip
 
 MONITORED_TOOLS = [
     "nmap", "tor", "proxychains4", "bettercap", "tcpdump",
-    "macchanger", "subfinder", "git", "whois",
+    "macchanger", "subfinder", "msfconsole", "git", "whois",
 ]
 
 _IP_RE = re.compile(r"\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b")
@@ -50,6 +50,7 @@ class DashboardTab(BaseTab):
             (tr("python_ver"), platform.python_version()),
             (tr("hostname"), socket.gethostname()),
             (tr("local_ip"), local_ip),
+            (tr("rights"), self._rights_label()),
         ]
         for key, value in rows:
             grid.add_widget(self._info_label(key, secondary=True))
@@ -115,6 +116,16 @@ class DashboardTab(BaseTab):
             return ip
         except Exception:
             return "127.0.0.1"
+
+    @staticmethod
+    def _rights_label() -> str:
+        """Человекочитаемый статус привилегий."""
+        from usosint.core.platform import has_sudo, is_root
+        if is_root():
+            return tr("rights_root")
+        if has_sudo():
+            return f'{tr("rights_user")} ({tr("rights_sudo")})'
+        return tr("rights_user")
 
     # ---------- сущности из логов ----------
 

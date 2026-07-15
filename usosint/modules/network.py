@@ -5,7 +5,7 @@ import subprocess
 
 from usosint.core.executor import CommandExecutor
 from usosint.core.logger import AppLogger
-from usosint.core.platform import check_tool, is_android, is_linux, is_root
+from usosint.core.platform import check_tool, is_android, is_linux, is_root, sudo_prefix
 
 
 class NetworkRecon:
@@ -40,8 +40,11 @@ class NetworkRecon:
 
         if is_root():
             cmd = ["nmap", "-sS", "-T2", "-Pn", subnet]
+        elif sudo_prefix():
+            self.logger.info("[NET] Нет root — SYN-сканирование через sudo.")
+            cmd = sudo_prefix() + ["nmap", "-sS", "-T2", "-Pn", subnet]
         else:
-            self.logger.warning("[NET] Нет root — используется TCP-connect сканирование (-sT).")
+            self.logger.warning("[NET] Нет root/sudo — используется TCP-connect сканирование (-sT).")
             cmd = ["nmap", "-sT", "-T2", "-Pn", subnet]
 
         self.executor.run(cmd, timeout=300)
@@ -62,15 +65,19 @@ class MitmAnalyzer:
             self.logger.warning("[NET] MITM-анализ недоступен на Android без root.")
             return
 
-        if not is_root():
-            self.logger.error("[NET] Требуются root-права для перехвата трафика.")
+        if not is_root() and not sudo_prefix():
+            self.logger.error(
+                "[NET] Нужен root или sudo для перехвата трафика: перезапустите "
+                "приложение через sudo или нажмите «Запросить root»."
+            )
             return
 
+        prefix = sudo_prefix()
         iface = self._detect_interface()
         self.logger.info(f"[NET] Интерфейс: {iface}")
 
         if check_tool("bettercap"):
-            cmd = [
+            cmd = prefix + [
                 "bettercap",
                 "-iface", iface,
                 "-eval",
@@ -82,7 +89,7 @@ class MitmAnalyzer:
             ]
             self.executor.run(cmd, timeout=960)
         elif check_tool("tcpdump"):
-            cmd = [
+            cmd = prefix + [
                 "tcpdump",
                 "-i", iface,
                 "-A",

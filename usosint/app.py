@@ -26,7 +26,7 @@ from usosint.ui.osint_tab import OsintTab
 from usosint.ui.theme import COLORS, apply_theme
 from usosint.ui.widgets import NavButton
 
-APP_VERSION = "0.3"
+APP_VERSION = "0.4"
 
 NAV_ITEMS = [
     ("dashboard", "view-dashboard", "nav_dashboard"),

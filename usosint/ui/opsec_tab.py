@@ -27,6 +27,9 @@ class OpsecTab(BaseTab):
 
         card = self.create_card(tr("opsec_title"), icon="shield-lock")
         card.add_widget(self.create_button(
+            tr("root_btn"), self._on_request_root, icon="account-key"
+        ))
+        card.add_widget(self.create_button(
             tr("stealth_btn"), self._on_stealth, icon="incognito"
         ))
 
@@ -47,6 +50,32 @@ class OpsecTab(BaseTab):
     def _on_stealth(self, instance):
         self.log(f"{tr('launching')}: stealth...")
         self.run_in_thread(self.stealth.run, name="stealth")
+
+    def _on_request_root(self, instance):
+        self.log(f"{tr('launching')}: sudo -v...")
+        self.run_in_thread(self._request_root, name="root-request")
+
+    def _request_root(self):
+        """Проверить/запросить root-доступ через sudo -n (без интерактива)."""
+        from usosint.core.platform import has_sudo, is_android, is_root
+        if is_root():
+            self.logger.success(tr("root_granted"))
+            return
+        if is_android():
+            out = self.executor.run_simple(["su", "-c", "id"], timeout=10)
+            if "uid=0" in out:
+                self.logger.success(tr("root_granted"))
+            else:
+                self.logger.warning(tr("root_denied"))
+            return
+        if not has_sudo():
+            self.logger.warning(tr("root_denied"))
+            return
+        out = self.executor.run_simple(["sudo", "-n", "true"], timeout=15)
+        if "[ERROR]" not in out:
+            self.logger.success(tr("root_granted"))
+        else:
+            self.logger.warning(tr("root_denied"))
 
     def _on_tor_toggle(self, instance, value):
         if value:

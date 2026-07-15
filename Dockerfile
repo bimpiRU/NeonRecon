@@ -14,8 +14,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Инструменты аудита + графические зависимости Kivy (SDL2)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-venv \
-    git curl ca-certificates \
+    git curl ca-certificates sudo \
     nmap tor proxychains4 tcpdump macchanger whois subfinder bettercap \
+    metasploit-framework \
     xvfb xauth \
     libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libsdl2-ttf-2.0-0 \
     libgl1 libglib2.0-0 libx11-6 libxext6 libxrender1 libsm6 libice6 \

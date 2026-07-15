@@ -27,6 +27,21 @@ def is_root() -> bool:
         return False
 
 
+def has_sudo() -> bool:
+    """Проверить наличие sudo (Linux, не Android)."""
+    return os.name == "posix" and not is_android() and shutil.which("sudo") is not None
+
+
+def sudo_prefix() -> list:
+    """Префикс для команды, требующей root: sudo -n, если мы не root.
+
+    Возвращает [] если root уже есть или sudo недоступен.
+    """
+    if is_root() or not has_sudo():
+        return []
+    return ["sudo", "-n"]
+
+
 def check_tool(name: str) -> bool:
     """Проверить наличие утилиты в PATH."""
     return shutil.which(name) is not None
