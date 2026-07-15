@@ -1,12 +1,10 @@
 """Вкладка сетевого аудита."""
 
-from kivy.metrics import dp
-from kivymd.uix.textfield import MDTextField
-
 from usosint.core.executor import CommandExecutor
+from usosint.core.i18n import tr
 from usosint.core.logger import AppLogger
 from usosint.modules.network import MfpAudit, MitmAnalyzer, NetworkRecon
-from usosint.ui.base_tab import BaseTab
+from usosint.ui.base_tab import BaseTab, TabHeader
 
 
 class NetworkTab(BaseTab):
@@ -14,44 +12,32 @@ class NetworkTab(BaseTab):
 
     def __init__(self, logger: AppLogger, executor: CommandExecutor, **kwargs):
         super().__init__(logger, executor, **kwargs)
-        self.title = "Сетевой аудит"
+        self.tab_id = "network"
 
         self.recon = NetworkRecon(logger, executor)
         self.mitm = MitmAnalyzer(logger, executor)
         self.mfp = MfpAudit(logger, executor)
 
-        self.layout.add_widget(self.create_section_title("Сетевой аудит и проникновение"))
-        self.layout.add_widget(
-            self.create_label(
-                "⚠️ MITM и сканирование разрешены только в авторизованных сетях.",
-                secondary=True,
-            )
-        )
+        self.layout.add_widget(TabHeader("net_title", "net_warn"))
 
-        self.layout.add_widget(self.create_button("Тихий Recon сети", self._on_recon))
-        self.layout.add_widget(self.create_button("Пассивный MITM-анализ", self._on_mitm))
+        card = self.create_card(tr("net_title"), icon="radar")
+        card.add_widget(self.create_button(tr("recon_btn"), self._on_recon, icon="wifi-search"))
+        card.add_widget(self.create_button(tr("mitm_btn"), self._on_mitm, icon="ear-hearing"))
 
-        # PRET target input
-        self.layout.add_widget(self.create_label("Целевой принтер (IP):", secondary=True))
-        self.printer_input = MDTextField(
-            hint_text="192.168.1.10",
-            helper_text="Оставьте пустым для автообнаружения",
-            helper_text_mode="persistent",
-            size_hint_y=None,
-            height=dp(48),
-        )
-        self.layout.add_widget(self.printer_input)
-        self.layout.add_widget(self.create_button("Аудит МФУ (PRET)", self._on_mfp))
+        card.add_widget(self.create_label(tr("printer_label"), secondary=True))
+        self.printer_input = self.create_input(tr("printer_hint"), tr("printer_helper"))
+        card.add_widget(self.printer_input)
+        card.add_widget(self.create_button(tr("pret_btn"), self._on_mfp, icon="printer-search"))
 
     def _on_recon(self, instance):
-        self.log("Запуск тихого recon сети...")
-        self.run_in_thread(self.recon.run_quiet_recon)
+        self.log(f"{tr('launching')}: quiet recon...")
+        self.run_in_thread(self.recon.run_quiet_recon, name="recon")
 
     def _on_mitm(self, instance):
-        self.log("Запуск пассивного MITM-анализа на 15 минут...")
-        self.run_in_thread(self.mitm.run)
+        self.log(f"{tr('launching')}: MITM (15 min)...")
+        self.run_in_thread(self.mitm.run, name="mitm")
 
     def _on_mfp(self, instance):
         target = self.printer_input.text.strip()
-        self.log(f"Запуск аудита МФУ: {target or 'автообнаружение'}...")
-        self.run_in_thread(self.mfp.run, target)
+        self.log(f"{tr('launching')}: PRET {target or 'auto'}...")
+        self.run_in_thread(self.mfp.run, target, name="pret")

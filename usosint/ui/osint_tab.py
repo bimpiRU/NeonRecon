@@ -1,13 +1,10 @@
 """Вкладка OSINT-разведки."""
 
-from kivy.metrics import dp
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.textfield import MDTextField
-
 from usosint.core.executor import CommandExecutor
+from usosint.core.i18n import tr
 from usosint.core.logger import AppLogger
 from usosint.modules.osint import DnsHistory, PhoneLookup, SubdomainEnum, WaybackSearch
-from usosint.ui.base_tab import BaseTab
+from usosint.ui.base_tab import BaseTab, TabHeader
 
 
 class OsintTab(BaseTab):
@@ -15,87 +12,70 @@ class OsintTab(BaseTab):
 
     def __init__(self, logger: AppLogger, executor: CommandExecutor, **kwargs):
         super().__init__(logger, executor, **kwargs)
-        self.title = "OSINT"
+        self.tab_id = "osint"
 
         self.dns_history = DnsHistory(logger, executor)
         self.wayback = WaybackSearch(logger, executor)
         self.subdomains = SubdomainEnum(logger, executor)
         self.phone_lookup = PhoneLookup(logger, executor)
 
-        self.layout.add_widget(self.create_section_title("OSINT-разведка"))
-        self.layout.add_widget(
-            self.create_label(
-                "⚠️ Соблюдайте законы о защите персональных данных.",
-                secondary=True,
-            )
-        )
+        self.layout.add_widget(TabHeader("osint_title", "osint_warn"))
 
         # --- Пассивный OSINT ---
-        self.layout.add_widget(self.create_section_title("Пассивный OSINT"))
-
-        self.layout.add_widget(self.create_label("Домен:", secondary=True))
-        self.domain_input = MDTextField(
-            hint_text="example.com",
-            helper_text="Целевой домен",
-            helper_text_mode="persistent",
-            size_hint_y=None,
-            height=dp(48),
-        )
-        self.layout.add_widget(self.domain_input)
-
-        dns_btn = self.create_button("DNS History", self._on_dns_history)
-        self.layout.add_widget(dns_btn)
-
-        wayback_btn = self.create_button("Архивные маршруты (Wayback)", self._on_wayback)
-        self.layout.add_widget(wayback_btn)
+        passive_card = self.create_card(tr("passive"), icon="magnify-scan")
+        passive_card.add_widget(self.create_label(tr("domain_label"), secondary=True))
+        self.domain_input = self.create_input(tr("domain_hint"), tr("domain_label"))
+        passive_card.add_widget(self.domain_input)
+        passive_card.add_widget(self.create_button(
+            tr("dns_btn"), self._on_dns_history, icon="dns"
+        ))
+        passive_card.add_widget(self.create_button(
+            tr("wayback_btn"), self._on_wayback, icon="history"
+        ))
 
         # --- Активный OSINT ---
-        self.layout.add_widget(self.create_section_title("Активный OSINT"))
-        subfinder_btn = self.create_button("Сбор поддоменов", self._on_subdomains)
-        self.layout.add_widget(subfinder_btn)
+        active_card = self.create_card(tr("active"), icon="radar")
+        active_card.add_widget(self.create_button(
+            tr("subdomains_btn"), self._on_subdomains, icon="lan"
+        ))
 
         # --- Анализ идентификаторов ---
-        self.layout.add_widget(self.create_section_title("Анализ идентификаторов"))
-        self.layout.add_widget(self.create_label("Номер телефона:", secondary=True))
-        self.phone_input = MDTextField(
-            hint_text="+79991234567",
-            helper_text="Формат: +79123456789",
-            helper_text_mode="persistent",
-            size_hint_y=None,
-            height=dp(48),
-        )
-        self.layout.add_widget(self.phone_input)
-        phone_btn = self.create_button("Phone Lookup", self._on_phone_lookup)
-        self.layout.add_widget(phone_btn)
+        ids_card = self.create_card(tr("ids_title"), icon="card-account-details")
+        ids_card.add_widget(self.create_label(tr("phone_label"), secondary=True))
+        self.phone_input = self.create_input(tr("phone_hint"), tr("phone_helper"))
+        ids_card.add_widget(self.phone_input)
+        ids_card.add_widget(self.create_button(
+            tr("phone_btn"), self._on_phone_lookup, icon="phone-search"
+        ))
+
+    def _get_domain(self) -> str:
+        domain = self.domain_input.text.strip()
+        if not domain:
+            self.log(tr("enter_domain"), "WARN")
+        return domain
 
     def _on_dns_history(self, instance):
-        domain = self.domain_input.text.strip()
-        if not domain:
-            self.log("Введите домен для DNS History", "WARN")
-            return
-        self.log(f"Запрос DNS History для {domain}...")
-        self.run_in_thread(self.dns_history.run, domain)
+        domain = self._get_domain()
+        if domain:
+            self.log(f"{tr('launching')}: DNS History {domain}...")
+            self.run_in_thread(self.dns_history.run, domain, name="dns-history")
 
     def _on_wayback(self, instance):
-        domain = self.domain_input.text.strip()
-        if not domain:
-            self.log("Введите домен для Wayback", "WARN")
-            return
-        self.log(f"Поиск архивных маршрутов для {domain}...")
-        self.run_in_thread(self.wayback.run, domain)
+        domain = self._get_domain()
+        if domain:
+            self.log(f"{tr('launching')}: Wayback {domain}...")
+            self.run_in_thread(self.wayback.run, domain, name="wayback")
 
     def _on_subdomains(self, instance):
-        domain = self.domain_input.text.strip()
-        if not domain:
-            self.log("Введите домен для сбора поддоменов", "WARN")
-            return
-        self.log(f"Запуск subfinder для {domain}...")
-        self.run_in_thread(self.subdomains.run, domain)
+        domain = self._get_domain()
+        if domain:
+            self.log(f"{tr('launching')}: subfinder {domain}...")
+            self.run_in_thread(self.subdomains.run, domain, name="subfinder")
 
     def _on_phone_lookup(self, instance):
         phone = self.phone_input.text.strip()
         if not phone:
-            self.log("Введите номер телефона", "WARN")
+            self.log(tr("enter_phone"), "WARN")
             return
-        self.log(f"Phone Lookup для {phone}...")
-        self.run_in_thread(self.phone_lookup.run, phone)
+        self.log(f"{tr('launching')}: Phone Lookup {phone}...")
+        self.run_in_thread(self.phone_lookup.run, phone, name="phone-lookup")

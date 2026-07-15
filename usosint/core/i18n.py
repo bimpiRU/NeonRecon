@@ -1,0 +1,494 @@
+"""Система локализации приложения.
+
+Использование:
+    from usosint.core.i18n import tr, set_language, get_language
+    label.text = tr("nav_dashboard")
+"""
+
+LANGUAGES = {
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch",
+    "zh": "中文",
+}
+
+_STRINGS = {
+    "ru": {
+        "app_title": "NEONRECON",
+        "app_subtitle": "Security & OSINT Console",
+        "nav_dashboard": "Дашборд",
+        "nav_opsec": "OPSEC",
+        "nav_network": "Сеть",
+        "nav_osint": "OSINT",
+        "nav_export": "Экспорт",
+        "disclaimer_title": "Юридический дисклеймер",
+        "disclaimer_text": (
+            "NeonRecon предназначен исключительно для легального аудита безопасности систем, "
+            "принадлежащих вам или на которые у вас есть письменное разрешение владельца.\n\n"
+            "Запрещается использовать ПО для несанкционированного доступа, перехвата чужого "
+            "трафика, сбора персональных данных без согласия и иной неправомерной деятельности.\n\n"
+            "Используя приложение, вы принимаете на себя полную ответственность за соблюдение "
+            "применимого законодательства."
+        ),
+        "decline": "ОТКАЗАТЬСЯ",
+        "accept": "ПРИНИМАЮ",
+        "disclaimer_ok": "Дисклеймер принят. Приложение готово к работе.",
+        # Dashboard
+        "sys_info": "Система",
+        "tools_status": "Инструменты",
+        "entities": "Сущности из логов",
+        "quick_actions": "Быстрые действия",
+        "platform": "Платформа",
+        "python_ver": "Python",
+        "hostname": "Хост",
+        "local_ip": "Локальный IP",
+        "available": "доступен",
+        "missing": "нет",
+        "entities_empty": "Сущности появятся по мере работы инструментов",
+        "ent_ip": "IP-адреса",
+        "ent_domain": "Домены",
+        "ent_email": "E-mail",
+        "ent_phone": "Телефоны",
+        "qa_report": "Сформировать отчёт",
+        "qa_dns": "DNS History",
+        # OPSEC
+        "opsec_title": "Операционная безопасность",
+        "opsec_warn": "Используйте только на собственных системах или с разрешения владельца.",
+        "stealth_btn": "Stealth-маскировка",
+        "tor_toggle": "Tor-туннелирование",
+        # Network
+        "net_title": "Сетевой аудит и проникновение",
+        "net_warn": "MITM и сканирование разрешены только в авторизованных сетях.",
+        "recon_btn": "Тихий Recon сети",
+        "mitm_btn": "Пассивный MITM-анализ",
+        "printer_label": "Целевой принтер (IP)",
+        "printer_hint": "192.168.1.10",
+        "printer_helper": "Оставьте пустым для автообнаружения",
+        "pret_btn": "Аудит МФУ (PRET)",
+        # OSINT
+        "osint_title": "OSINT-разведка",
+        "osint_warn": "Соблюдайте законы о защите персональных данных.",
+        "passive": "Пассивный OSINT",
+        "active": "Активный OSINT",
+        "domain_label": "Целевой домен",
+        "domain_hint": "example.com",
+        "dns_btn": "DNS History",
+        "wayback_btn": "Архивные маршруты (Wayback)",
+        "subdomains_btn": "Сбор поддоменов",
+        "ids_title": "Анализ идентификаторов",
+        "phone_label": "Номер телефона",
+        "phone_hint": "+79991234567",
+        "phone_helper": "Формат: +79123456789",
+        "phone_btn": "Phone Lookup",
+        # Export
+        "exp_title": "Интеграция и экспорт",
+        "exp_warn": "Убедитесь, что отчёты не содержат чувствительных данных перед отправкой.",
+        "report_btn": "Локальный отчёт",
+        "repo_label": "URL приватного репозитория (опционально)",
+        "repo_hint": "https://github.com/user/private-repo.git",
+        "repo_helper": "Для автоматического git remote add",
+        "sync_btn": "GitHub Синхронизация",
+        # Log panel
+        "log_hint": "Журнал операций",
+        "filter_all": "ВСЕ",
+        "clear": "Очистить",
+        "copy": "Копировать",
+        "copied": "Лог скопирован в буфер обмена",
+        "log_cleared": "Журнал очищен",
+        # Status bar
+        "st_ready": "готов",
+        "st_tasks": "задач",
+        "st_tools": "инструменты",
+        "st_session": "сессия",
+        "stop_all": "Стоп все",
+        "stopped_all": "Все задачи остановлены",
+        # Validation
+        "enter_domain": "Введите домен",
+        "enter_phone": "Введите номер телефона",
+        "launching": "Запуск",
+    },
+    "en": {
+        "app_title": "NEONRECON",
+        "app_subtitle": "Security & OSINT Console",
+        "nav_dashboard": "Dashboard",
+        "nav_opsec": "OPSEC",
+        "nav_network": "Network",
+        "nav_osint": "OSINT",
+        "nav_export": "Export",
+        "disclaimer_title": "Legal Disclaimer",
+        "disclaimer_text": (
+            "NeonRecon is intended exclusively for legal security auditing of systems that you "
+            "own or for which you have the owner's written permission.\n\n"
+            "It is forbidden to use this software for unauthorized access, interception of "
+            "third-party traffic, collection of personal data without consent, or any other "
+            "unlawful activity.\n\n"
+            "By using this application, you accept full responsibility for compliance with "
+            "applicable law."
+        ),
+        "decline": "DECLINE",
+        "accept": "ACCEPT",
+        "disclaimer_ok": "Disclaimer accepted. Application is ready.",
+        "sys_info": "System",
+        "tools_status": "Tools",
+        "entities": "Entities from logs",
+        "quick_actions": "Quick actions",
+        "platform": "Platform",
+        "python_ver": "Python",
+        "hostname": "Host",
+        "local_ip": "Local IP",
+        "available": "available",
+        "missing": "missing",
+        "entities_empty": "Entities will appear as tools run",
+        "ent_ip": "IP addresses",
+        "ent_domain": "Domains",
+        "ent_email": "E-mail",
+        "ent_phone": "Phones",
+        "qa_report": "Generate report",
+        "qa_dns": "DNS History",
+        "opsec_title": "Operational Security",
+        "opsec_warn": "Use only on your own systems or with the owner's permission.",
+        "stealth_btn": "Stealth masking",
+        "tor_toggle": "Tor tunneling",
+        "net_title": "Network Audit & Penetration",
+        "net_warn": "MITM and scanning are allowed only in authorized networks.",
+        "recon_btn": "Quiet network recon",
+        "mitm_btn": "Passive MITM analysis",
+        "printer_label": "Target printer (IP)",
+        "printer_hint": "192.168.1.10",
+        "printer_helper": "Leave empty for auto-discovery",
+        "pret_btn": "MFP audit (PRET)",
+        "osint_title": "OSINT Intelligence",
+        "osint_warn": "Comply with personal data protection laws.",
+        "passive": "Passive OSINT",
+        "active": "Active OSINT",
+        "domain_label": "Target domain",
+        "domain_hint": "example.com",
+        "dns_btn": "DNS History",
+        "wayback_btn": "Archive routes (Wayback)",
+        "subdomains_btn": "Subdomain enumeration",
+        "ids_title": "Identifier analysis",
+        "phone_label": "Phone number",
+        "phone_hint": "+79991234567",
+        "phone_helper": "Format: +79123456789",
+        "phone_btn": "Phone Lookup",
+        "exp_title": "Integration & Export",
+        "exp_warn": "Make sure reports contain no sensitive data before uploading.",
+        "report_btn": "Local report",
+        "repo_label": "Private repository URL (optional)",
+        "repo_hint": "https://github.com/user/private-repo.git",
+        "repo_helper": "For automatic git remote add",
+        "sync_btn": "GitHub Sync",
+        "log_hint": "Operations log",
+        "filter_all": "ALL",
+        "clear": "Clear",
+        "copy": "Copy",
+        "copied": "Log copied to clipboard",
+        "log_cleared": "Log cleared",
+        "st_ready": "ready",
+        "st_tasks": "tasks",
+        "st_tools": "tools",
+        "st_session": "session",
+        "stop_all": "Stop all",
+        "stopped_all": "All tasks stopped",
+        "enter_domain": "Enter a domain",
+        "enter_phone": "Enter a phone number",
+        "launching": "Launching",
+    },
+    "es": {
+        "app_title": "NEONRECON",
+        "app_subtitle": "Security & OSINT Console",
+        "nav_dashboard": "Panel",
+        "nav_opsec": "OPSEC",
+        "nav_network": "Red",
+        "nav_osint": "OSINT",
+        "nav_export": "Exportar",
+        "disclaimer_title": "Aviso legal",
+        "disclaimer_text": (
+            "NeonRecon está destinado exclusivamente a la auditoría de seguridad legal de "
+            "sistemas que le pertenecen o para los que tiene permiso escrito del propietario.\n\n"
+            "Está prohibido usar este software para acceso no autorizado, interceptación de "
+            "tráfico de terceros, recopilación de datos personales sin consentimiento o "
+            "cualquier otra actividad ilegal.\n\n"
+            "Al usar esta aplicación, usted acepta toda la responsabilidad por el cumplimiento "
+            "de la legislación aplicable."
+        ),
+        "decline": "RECHAZAR",
+        "accept": "ACEPTO",
+        "disclaimer_ok": "Aviso aceptado. La aplicación está lista.",
+        "sys_info": "Sistema",
+        "tools_status": "Herramientas",
+        "entities": "Entidades de los registros",
+        "quick_actions": "Acciones rápidas",
+        "platform": "Plataforma",
+        "python_ver": "Python",
+        "hostname": "Host",
+        "local_ip": "IP local",
+        "available": "disponible",
+        "missing": "ausente",
+        "entities_empty": "Las entidades aparecerán durante el trabajo",
+        "ent_ip": "Direcciones IP",
+        "ent_domain": "Dominios",
+        "ent_email": "E-mail",
+        "ent_phone": "Teléfonos",
+        "qa_report": "Generar informe",
+        "qa_dns": "DNS History",
+        "opsec_title": "Seguridad operativa",
+        "opsec_warn": "Úselo solo en sus propios sistemas o con permiso del propietario.",
+        "stealth_btn": "Enmascaramiento Stealth",
+        "tor_toggle": "Tunelización Tor",
+        "net_title": "Auditoría de red y penetración",
+        "net_warn": "MITM y el escaneo solo están permitidos en redes autorizadas.",
+        "recon_btn": "Reconocimiento silencioso",
+        "mitm_btn": "Análisis MITM pasivo",
+        "printer_label": "Impresora objetivo (IP)",
+        "printer_hint": "192.168.1.10",
+        "printer_helper": "Deje vacío para autodetección",
+        "pret_btn": "Auditoría MFP (PRET)",
+        "osint_title": "Inteligencia OSINT",
+        "osint_warn": "Cumpla las leyes de protección de datos personales.",
+        "passive": "OSINT pasivo",
+        "active": "OSINT activo",
+        "domain_label": "Dominio objetivo",
+        "domain_hint": "example.com",
+        "dns_btn": "DNS History",
+        "wayback_btn": "Rutas archivadas (Wayback)",
+        "subdomains_btn": "Enumeración de subdominios",
+        "ids_title": "Análisis de identificadores",
+        "phone_label": "Número de teléfono",
+        "phone_hint": "+79991234567",
+        "phone_helper": "Formato: +79123456789",
+        "phone_btn": "Phone Lookup",
+        "exp_title": "Integración y exportación",
+        "exp_warn": "Asegúrese de que los informes no contengan datos sensibles antes de subirlos.",
+        "report_btn": "Informe local",
+        "repo_label": "URL del repositorio privado (opcional)",
+        "repo_hint": "https://github.com/user/private-repo.git",
+        "repo_helper": "Para git remote add automático",
+        "sync_btn": "Sincronización GitHub",
+        "log_hint": "Registro de operaciones",
+        "filter_all": "TODO",
+        "clear": "Limpiar",
+        "copy": "Copiar",
+        "copied": "Registro copiado al portapapeles",
+        "log_cleared": "Registro limpiado",
+        "st_ready": "listo",
+        "st_tasks": "tareas",
+        "st_tools": "herramientas",
+        "st_session": "sesión",
+        "stop_all": "Detener todo",
+        "stopped_all": "Todas las tareas detenidas",
+        "enter_domain": "Introduzca un dominio",
+        "enter_phone": "Introduzca un número de teléfono",
+        "launching": "Iniciando",
+    },
+    "de": {
+        "app_title": "NEONRECON",
+        "app_subtitle": "Security & OSINT Console",
+        "nav_dashboard": "Dashboard",
+        "nav_opsec": "OPSEC",
+        "nav_network": "Netzwerk",
+        "nav_osint": "OSINT",
+        "nav_export": "Export",
+        "disclaimer_title": "Rechtlicher Hinweis",
+        "disclaimer_text": (
+            "NeonRecon ist ausschließlich für die legale Sicherheitsüberprüfung von Systemen "
+            "vorgesehen, die Ihnen gehören oder für die Sie eine schriftliche Genehmigung des "
+            "Eigentümers besitzen.\n\n"
+            "Es ist verboten, diese Software für unbefugten Zugriff, das Abfangen fremden "
+            "Datenverkehrs, das Sammeln personenbezogener Daten ohne Einwilligung oder andere "
+            "rechtswidrige Aktivitäten zu verwenden.\n\n"
+            "Mit der Nutzung dieser Anwendung übernehmen Sie die volle Verantwortung für die "
+            "Einhaltung geltenden Rechts."
+        ),
+        "decline": "ABLEHNEN",
+        "accept": "AKZEPTIEREN",
+        "disclaimer_ok": "Haftungsausschluss akzeptiert. Anwendung ist bereit.",
+        "sys_info": "System",
+        "tools_status": "Werkzeuge",
+        "entities": "Entitäten aus Logs",
+        "quick_actions": "Schnellaktionen",
+        "platform": "Plattform",
+        "python_ver": "Python",
+        "hostname": "Host",
+        "local_ip": "Lokale IP",
+        "available": "verfügbar",
+        "missing": "fehlt",
+        "entities_empty": "Entitäten erscheinen im Laufe der Arbeit",
+        "ent_ip": "IP-Adressen",
+        "ent_domain": "Domains",
+        "ent_email": "E-Mail",
+        "ent_phone": "Telefone",
+        "qa_report": "Bericht erstellen",
+        "qa_dns": "DNS History",
+        "opsec_title": "Operative Sicherheit",
+        "opsec_warn": "Nur auf eigenen Systemen oder mit Genehmigung des Eigentümers verwenden.",
+        "stealth_btn": "Stealth-Maskierung",
+        "tor_toggle": "Tor-Tunneling",
+        "net_title": "Netzwerk-Audit & Penetration",
+        "net_warn": "MITM und Scans sind nur in autorisierten Netzwerken erlaubt.",
+        "recon_btn": "Leiser Netzwerk-Recon",
+        "mitm_btn": "Passive MITM-Analyse",
+        "printer_label": "Zieldrucker (IP)",
+        "printer_hint": "192.168.1.10",
+        "printer_helper": "Leer lassen für automatische Erkennung",
+        "pret_btn": "MFP-Audit (PRET)",
+        "osint_title": "OSINT-Aufklärung",
+        "osint_warn": "Beachten Sie die Datenschutzgesetze.",
+        "passive": "Passives OSINT",
+        "active": "Aktives OSINT",
+        "domain_label": "Zieldomain",
+        "domain_hint": "example.com",
+        "dns_btn": "DNS History",
+        "wayback_btn": "Archivierte Pfade (Wayback)",
+        "subdomains_btn": "Subdomain-Enumeration",
+        "ids_title": "Identifikator-Analyse",
+        "phone_label": "Telefonnummer",
+        "phone_hint": "+79991234567",
+        "phone_helper": "Format: +79123456789",
+        "phone_btn": "Phone Lookup",
+        "exp_title": "Integration & Export",
+        "exp_warn": "Stellen Sie sicher, dass Berichte keine sensiblen Daten enthalten.",
+        "report_btn": "Lokaler Bericht",
+        "repo_label": "Private Repository-URL (optional)",
+        "repo_hint": "https://github.com/user/private-repo.git",
+        "repo_helper": "Für automatisches git remote add",
+        "sync_btn": "GitHub-Synchronisation",
+        "log_hint": "Operationsprotokoll",
+        "filter_all": "ALLE",
+        "clear": "Leeren",
+        "copy": "Kopieren",
+        "copied": "Protokoll in Zwischenablage kopiert",
+        "log_cleared": "Protokoll geleert",
+        "st_ready": "bereit",
+        "st_tasks": "Aufgaben",
+        "st_tools": "Werkzeuge",
+        "st_session": "Sitzung",
+        "stop_all": "Alle stoppen",
+        "stopped_all": "Alle Aufgaben gestoppt",
+        "enter_domain": "Domain eingeben",
+        "enter_phone": "Telefonnummer eingeben",
+        "launching": "Starte",
+    },
+    "zh": {
+        "app_title": "NEONRECON",
+        "app_subtitle": "Security & OSINT Console",
+        "nav_dashboard": "仪表盘",
+        "nav_opsec": "OPSEC",
+        "nav_network": "网络",
+        "nav_osint": "OSINT",
+        "nav_export": "导出",
+        "disclaimer_title": "法律免责声明",
+        "disclaimer_text": (
+            "NeonRecon 仅用于对您拥有的系统或获得所有者书面许可的系统进行合法安全审计。\n\n"
+            "禁止将本软件用于未经授权的访问、拦截他人流量、未经同意收集个人数据或任何其他非法活动。\n\n"
+            "使用本应用程序即表示您承担遵守适用法律的全部责任。"
+        ),
+        "decline": "拒绝",
+        "accept": "接受",
+        "disclaimer_ok": "免责声明已接受。应用程序已就绪。",
+        "sys_info": "系统",
+        "tools_status": "工具",
+        "entities": "日志中的实体",
+        "quick_actions": "快捷操作",
+        "platform": "平台",
+        "python_ver": "Python",
+        "hostname": "主机",
+        "local_ip": "本地 IP",
+        "available": "可用",
+        "missing": "缺失",
+        "entities_empty": "实体将随工具运行而出现",
+        "ent_ip": "IP 地址",
+        "ent_domain": "域名",
+        "ent_email": "电子邮件",
+        "ent_phone": "电话",
+        "qa_report": "生成报告",
+        "qa_dns": "DNS History",
+        "opsec_title": "操作安全",
+        "opsec_warn": "仅在您自己的系统上或经所有者许可使用。",
+        "stealth_btn": "隐身伪装",
+        "tor_toggle": "Tor 隧道",
+        "net_title": "网络审计与渗透",
+        "net_warn": "MITM 和扫描仅允许在授权网络中使用。",
+        "recon_btn": "静默网络侦察",
+        "mitm_btn": "被动 MITM 分析",
+        "printer_label": "目标打印机 (IP)",
+        "printer_hint": "192.168.1.10",
+        "printer_helper": "留空以自动发现",
+        "pret_btn": "MFP 审计 (PRET)",
+        "osint_title": "OSINT 情报",
+        "osint_warn": "请遵守个人数据保护法律。",
+        "passive": "被动 OSINT",
+        "active": "主动 OSINT",
+        "domain_label": "目标域名",
+        "domain_hint": "example.com",
+        "dns_btn": "DNS 历史",
+        "wayback_btn": "存档路径 (Wayback)",
+        "subdomains_btn": "子域名收集",
+        "ids_title": "标识符分析",
+        "phone_label": "电话号码",
+        "phone_hint": "+79991234567",
+        "phone_helper": "格式: +79123456789",
+        "phone_btn": "电话查询",
+        "exp_title": "集成与导出",
+        "exp_warn": "上传前请确保报告不包含敏感数据。",
+        "report_btn": "本地报告",
+        "repo_label": "私有仓库 URL（可选）",
+        "repo_hint": "https://github.com/user/private-repo.git",
+        "repo_helper": "用于自动 git remote add",
+        "sync_btn": "GitHub 同步",
+        "log_hint": "操作日志",
+        "filter_all": "全部",
+        "clear": "清空",
+        "copy": "复制",
+        "copied": "日志已复制到剪贴板",
+        "log_cleared": "日志已清空",
+        "st_ready": "就绪",
+        "st_tasks": "任务",
+        "st_tools": "工具",
+        "st_session": "会话",
+        "stop_all": "全部停止",
+        "stopped_all": "所有任务已停止",
+        "enter_domain": "请输入域名",
+        "enter_phone": "请输入电话号码",
+        "launching": "启动中",
+    },
+}
+
+_current_language = "ru"
+_listeners = []
+
+
+def get_language() -> str:
+    """Текущий язык интерфейса."""
+    return _current_language
+
+
+def set_language(lang: str):
+    """Установить язык и уведомить слушателей."""
+    global _current_language
+    if lang not in LANGUAGES:
+        lang = "en"
+    _current_language = lang
+    for callback in list(_listeners):
+        try:
+            callback(lang)
+        except Exception:
+            pass
+
+
+def on_language_change(callback):
+    """Подписаться на смену языка."""
+    _listeners.append(callback)
+
+
+def tr(key: str) -> str:
+    """Перевести ключ на текущий язык (fallback: en, затем ru)."""
+    lang_map = _STRINGS.get(_current_language, _STRINGS["en"])
+    if key in lang_map:
+        return lang_map[key]
+    if key in _STRINGS["en"]:
+        return _STRINGS["en"][key]
+    if key in _STRINGS["ru"]:
+        return _STRINGS["ru"][key]
+    return key

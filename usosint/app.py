@@ -1,90 +1,315 @@
-"""Корневой виджет приложения."""
+"""Корневой виджет приложения: header + sidebar + content + status bar."""
+
+import time
 
 from kivy.clock import Clock
+from kivy.core.window import Window
 from kivy.metrics import dp
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.label import MDLabel
-from kivymd.uix.tab import MDTabs
+from kivymd.uix.label import MDIcon, MDLabel
+from kivymd.uix.menu import MDDropdownMenu
 
+from usosint.core import config
 from usosint.core.executor import CommandExecutor
+from usosint.core.i18n import LANGUAGES, get_language, set_language, tr
 from usosint.core.logger import AppLogger
+from usosint.core.platform import platform_label
+from usosint.ui.dashboard_tab import DashboardTab
 from usosint.ui.export_tab import ExportTab
 from usosint.ui.log_panel import LogPanel
 from usosint.ui.network_tab import NetworkTab
 from usosint.ui.opsec_tab import OpsecTab
 from usosint.ui.osint_tab import OsintTab
 from usosint.ui.theme import COLORS, apply_theme
+from usosint.ui.widgets import NavButton
+
+APP_VERSION = "0.2"
+
+NAV_ITEMS = [
+    ("dashboard", "view-dashboard", "nav_dashboard"),
+    ("opsec", "shield-lock", "nav_opsec"),
+    ("network", "radar", "nav_network"),
+    ("osint", "magnify-scan", "nav_osint"),
+    ("export", "export", "nav_export"),
+]
 
 
 class USOSINTApp(MDApp):
-    """Главное приложение Universal Security & OSINT Assistant."""
+    """Главное приложение NeonRecon (Universal Security & OSINT Assistant)."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.title = "Universal Security & OSINT Assistant"
+        self.title = "NeonRecon — Universal Security & OSINT Assistant"
         self.logger = AppLogger()
         self.executor = CommandExecutor(self.logger)
         self.disclaimer_dialog = None
+        self._started_at = time.time()
+        self._current_tab = "dashboard"
+        self._tabs = {}
+        self._nav_buttons = {}
+
+        lang = config.get("language", "ru")
+        set_language(lang)
+
+    # ---------- построение ----------
 
     def build(self):
         apply_theme(self)
+        Window.clearcolor = COLORS["bg_dark"]
+        try:
+            from usosint.core.platform import is_android
+            if not is_android():
+                Window.size = (dp(1180), dp(800))
+        except Exception:
+            pass
 
         root = MDBoxLayout(orientation="vertical", spacing=0)
+        root.add_widget(self._build_header())
 
-        # Вкладки
-        tabs = MDTabs(
-            background_color=COLORS["bg_dark"],
-            text_color_active=COLORS["neon_green"],
-            text_color_normal=COLORS["text_secondary"],
-            indicator_color=COLORS["neon_green"],
-            size_hint_y=0.75,
-        )
+        body = MDBoxLayout(orientation="horizontal", spacing=0)
+        body.add_widget(self._build_sidebar())
 
-        tabs.add_widget(OpsecTab(self.logger, self.executor))
-        tabs.add_widget(NetworkTab(self.logger, self.executor))
-        tabs.add_widget(OsintTab(self.logger, self.executor))
-        tabs.add_widget(ExportTab(self.logger, self.executor))
+        right = MDBoxLayout(orientation="vertical", spacing=0)
+        self.content_area = MDBoxLayout(orientation="vertical", size_hint_y=0.72)
+        right.add_widget(self.content_area)
+        right.add_widget(LogPanel(self.logger, size_hint_y=0.28))
+        body.add_widget(right)
+        root.add_widget(body)
 
-        root.add_widget(tabs)
+        root.add_widget(self._build_statusbar())
 
-        # Панель логов
-        log_panel = LogPanel(self.logger, size_hint_y=0.25)
-        root.add_widget(log_panel)
-
-        # Показать дисклеймер после первого запуска
+        self._switch_tab("dashboard")
+        self.executor.add_listener(self._on_tasks_changed)
+        Clock.schedule_interval(self._tick, 1.0)
         Clock.schedule_once(lambda dt: self.show_disclaimer(), 0.5)
-
         return root
 
-    def show_disclaimer(self):
-        """Показать стартовый дисклеймер."""
-        disclaimer_text = (
-            "Universal Security & OSINT Assistant предназначен исключительно для легального аудита "
-            "безопасности систем, принадлежащих вам или на которые у вас есть письменное разрешение "
-            "владельца.\n\n"
-            "Запрещается использовать ПО для несанкционированного доступа, перехвата чужого трафика, "
-            "сбора персональных данных без согласия и иной неправомерной деятельности.\n\n"
-            "Используя приложение, вы принимаете на себя полную ответственность за соблюдение "
-            "применимого законодательства."
+    def _build_header(self) -> MDBoxLayout:
+        header = MDBoxLayout(
+            orientation="horizontal",
+            size_hint_y=None,
+            height=dp(52),
+            padding=(dp(14), 0, dp(8), 0),
+            spacing=dp(10),
+            md_bg_color=COLORS["bg_panel"],
         )
+        header.add_widget(MDIcon(
+            icon="hexagon-slice-6",
+            theme_text_color="Custom",
+            text_color=COLORS["neon_green"],
+            font_size=dp(26),
+            size_hint=(None, None),
+            size=(dp(30), dp(30)),
+            pos_hint={"center_y": 0.5},
+        ))
+        title_box = MDBoxLayout(orientation="vertical", spacing=0)
+        title_box.add_widget(MDLabel(
+            text=f"[b]{tr('app_title')}[/b]  [color=00FF9D]v{APP_VERSION}[/color]",
+            markup=True,
+            theme_text_color="Custom",
+            text_color=COLORS["text_primary"],
+            font_size=dp(16),
+        ))
+        title_box.add_widget(MDLabel(
+            text=tr("app_subtitle"),
+            theme_text_color="Custom",
+            text_color=COLORS["text_secondary"],
+            font_size=dp(10),
+        ))
+        header.add_widget(title_box)
 
+        # чип платформы
+        header.add_widget(MDLabel(
+            text=platform_label(),
+            theme_text_color="Custom",
+            text_color=COLORS["neon_blue"],
+            font_size=dp(11),
+            size_hint_x=None,
+            width=dp(90),
+            halign="right",
+        ))
+
+        # выбор языка
+        self.lang_button = MDFlatButton(
+            text=LANGUAGES[get_language()],
+            theme_text_color="Custom",
+            text_color=COLORS["text_primary"],
+            size_hint_x=None,
+            width=dp(110),
+            on_release=self._open_lang_menu,
+        )
+        header.add_widget(self.lang_button)
+        return header
+
+    def _build_sidebar(self) -> MDBoxLayout:
+        sidebar = MDBoxLayout(
+            orientation="vertical",
+            size_hint_x=None,
+            width=dp(170),
+            spacing=dp(2),
+            padding=(0, dp(8), 0, 0),
+            md_bg_color=COLORS["bg_panel"],
+        )
+        for tab_id, icon, title_key in NAV_ITEMS:
+            btn = NavButton(
+                icon=icon,
+                text=tr(title_key),
+                callback=lambda tid=tab_id: self._switch_tab(tid),
+            )
+            btn.title_key = title_key
+            self._nav_buttons[tab_id] = btn
+            sidebar.add_widget(btn)
+        # распорка прижимает кнопки к верху
+        sidebar.add_widget(MDBoxLayout(size_hint_y=1))
+        return sidebar
+
+    def _build_statusbar(self) -> MDBoxLayout:
+        bar = MDBoxLayout(
+            orientation="horizontal",
+            size_hint_y=None,
+            height=dp(30),
+            padding=(dp(12), 0, dp(12), 0),
+            spacing=dp(16),
+            md_bg_color=COLORS["bg_panel"],
+        )
+        self.status_dot = MDIcon(
+            icon="circle",
+            theme_text_color="Custom",
+            text_color=COLORS["neon_green"],
+            font_size=dp(10),
+            size_hint=(None, None),
+            size=(dp(14), dp(14)),
+            pos_hint={"center_y": 0.5},
+        )
+        bar.add_widget(self.status_dot)
+        self.status_text = MDLabel(
+            text=tr("st_ready"),
+            theme_text_color="Custom",
+            text_color=COLORS["text_secondary"],
+            font_size=dp(11),
+        )
+        bar.add_widget(self.status_text)
+        self.session_text = MDLabel(
+            text="",
+            theme_text_color="Custom",
+            text_color=COLORS["text_secondary"],
+            font_size=dp(11),
+            size_hint_x=None,
+            width=dp(200),
+            halign="right",
+        )
+        bar.add_widget(self.session_text)
+        self.stop_button = MDFlatButton(
+            text=tr("stop_all"),
+            theme_text_color="Custom",
+            text_color=COLORS["neon_red"],
+            size_hint_x=None,
+            width=dp(90),
+            on_release=self._stop_all_tasks,
+        )
+        bar.add_widget(self.stop_button)
+        return bar
+
+    # ---------- навигация ----------
+
+    def _switch_tab(self, tab_id: str):
+        self._current_tab = tab_id
+        if tab_id not in self._tabs:
+            factory = {
+                "dashboard": DashboardTab,
+                "opsec": OpsecTab,
+                "network": NetworkTab,
+                "osint": OsintTab,
+                "export": ExportTab,
+            }[tab_id]
+            self._tabs[tab_id] = factory(self.logger, self.executor)
+
+        self.content_area.clear_widgets()
+        self.content_area.add_widget(self._tabs[tab_id])
+        for tid, btn in self._nav_buttons.items():
+            btn.set_active(tid == tab_id)
+
+    # ---------- статус-бар ----------
+
+    def _on_tasks_changed(self):
+        Clock.schedule_once(lambda dt: self._refresh_status(), 0)
+
+    def _refresh_status(self):
+        count = self.executor.running_count()
+        if count:
+            names = ", ".join(self.executor.running_names()[:3])
+            self.status_text.text = f"{tr('st_tasks')}: {count} · {names}"
+            self.status_dot.text_color = COLORS["neon_amber"]
+        else:
+            self.status_text.text = tr("st_ready")
+            self.status_dot.text_color = COLORS["neon_green"]
+
+    def _tick(self, dt):
+        elapsed = int(time.time() - self._started_at)
+        h, rem = divmod(elapsed, 3600)
+        m, s = divmod(rem, 60)
+        self.session_text.text = f"{tr('st_session')} {h:02d}:{m:02d}:{s:02d}"
+
+    def _stop_all_tasks(self, *_):
+        self.executor.cancel_all()
+        self.logger.warning(tr("stopped_all"))
+
+    # ---------- язык ----------
+
+    def _open_lang_menu(self, *_):
+        items = [
+            {
+                "text": name,
+                "viewclass": "OneLineListItem",
+                "on_release": lambda code=code: self._select_language(code),
+            }
+            for code, name in LANGUAGES.items()
+        ]
+        self._lang_menu = MDDropdownMenu(
+            caller=self.lang_button,
+            items=items,
+            width_mult=3,
+        )
+        self._lang_menu.open()
+
+    def _select_language(self, code: str):
+        self._lang_menu.dismiss()
+        if code == get_language():
+            return
+        set_language(code)
+        config.set_value("language", code)
+        # пересобираем интерфейс с новыми строками
+        self._tabs.clear()
+        self.root.clear_widgets()
+        rebuilt = self.build()
+        for child in list(self.root.children):
+            self.root.remove_widget(child)
+        self.root.add_widget(rebuilt)
+
+    # ---------- дисклеймер ----------
+
+    def show_disclaimer(self):
+        """Показать стартовый дисклеймер (один раз, пока не принят)."""
+        if config.get("disclaimer_accepted"):
+            self.logger.info(tr("disclaimer_ok"))
+            return
         self.disclaimer_dialog = MDDialog(
-            title="⚠️ Юридический дисклеймер",
-            text=disclaimer_text,
+            title="⚠ " + tr("disclaimer_title"),
+            text=tr("disclaimer_text"),
             size_hint=(0.9, None),
             height=dp(400),
             buttons=[
                 MDFlatButton(
-                    text="ОТКАЗАТЬСЯ",
+                    text=tr("decline"),
                     theme_text_color="Custom",
                     text_color=COLORS["neon_red"],
                     on_release=self.exit_app,
                 ),
                 MDRaisedButton(
-                    text="ПРИНИМАЮ",
+                    text=tr("accept"),
                     md_bg_color=COLORS["neon_green"],
                     text_color=COLORS["bg_dark"],
                     on_release=self.dismiss_disclaimer,
@@ -94,10 +319,11 @@ class USOSINTApp(MDApp):
         self.disclaimer_dialog.open()
 
     def dismiss_disclaimer(self, *args):
-        """Закрыть дисклеймер."""
+        """Закрыть дисклеймер и запомнить согласие."""
         if self.disclaimer_dialog:
             self.disclaimer_dialog.dismiss()
-        self.logger.info("Дисклеймер принят. Приложение готово к работе.")
+        config.set_value("disclaimer_accepted", True)
+        self.logger.info(tr("disclaimer_ok"))
 
     def exit_app(self, *args):
         """Завершить приложение."""
