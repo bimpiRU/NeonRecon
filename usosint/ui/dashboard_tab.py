@@ -59,8 +59,11 @@ class DashboardTab(BaseTab):
 
         # --- инструменты ---
         tools_card = self.create_card(tr("tools_status"), icon="tools")
+        from kivy.core.window import Window
+        from usosint.core.platform import is_android
+        chips_cols = 2 if (is_android() or Window.width < dp(940)) else 3
         chips = MDGridLayout(
-            cols=3,
+            cols=chips_cols,
             spacing=dp(10),
             size_hint_y=None,
             adaptive_height=True,
@@ -97,7 +100,8 @@ class DashboardTab(BaseTab):
         qa_card.add_widget(qa_box)
 
     def _info_label(self, text: str, secondary: bool = False) -> MDLabel:
-        return MDLabel(
+        """Метка с адаптивной высотой — длинные значения переносятся без наложений."""
+        lbl = MDLabel(
             text=text,
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"] if secondary else COLORS["text_primary"],
@@ -105,6 +109,10 @@ class DashboardTab(BaseTab):
             size_hint_y=None,
             height=dp(26),
         )
+        lbl.bind(
+            texture_size=lambda inst, size: setattr(inst, "height", max(dp(26), size[1] + dp(4)))
+        )
+        return lbl
 
     @staticmethod
     def _detect_ip() -> str:
