@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+
+# Buildozer / Android build artifacts
+.buildozer/
+bin/
+*.apk
+*.aab
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Runtime artifacts
+*.log
+FINAL_REPORT.txt
+reports/

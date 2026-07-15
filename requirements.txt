@@ -1,0 +1,4 @@
+kivy==2.3.0
+kivymd==1.2.0
+requests>=2.31.0
+python-whois>=0.8.0
