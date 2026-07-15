@@ -29,8 +29,8 @@ class BaseTab(ScrollView):
 
         self.layout = MDGridLayout(
             cols=1,
-            spacing=dp(12),
-            padding=(dp(14), dp(14), dp(14), dp(14)),
+            spacing=dp(16),
+            padding=(dp(18), dp(18), dp(18), dp(18)),
             size_hint_y=None,
         )
         self.layout.bind(minimum_height=self.layout.setter("height"))
@@ -61,9 +61,9 @@ class BaseTab(ScrollView):
             icon=icon,
             md_bg_color=COLORS["neon_green"],
             text_color=COLORS["bg_dark"],
-            font_size=dp(13),
+            font_size=dp(15),
             size_hint=(1, None),
-            height=dp(44),
+            height=dp(52),
             elevation=0,
         )
         btn.bind(on_release=callback)
@@ -75,10 +75,10 @@ class BaseTab(ScrollView):
             text=text,
             theme_text_color="Custom",
             text_color=COLORS["neon_blue"],
-            font_style="Subtitle2",
+            font_size=dp(15),
             bold=True,
             size_hint_y=None,
-            height=dp(26),
+            height=dp(30),
         )
 
     def create_label(self, text: str, secondary=False) -> MDLabel:
@@ -87,9 +87,9 @@ class BaseTab(ScrollView):
             text=text,
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"] if secondary else COLORS["text_primary"],
-            font_size=dp(12),
+            font_size=dp(14),
             size_hint_y=None,
-            height=dp(22),
+            height=dp(26),
         )
 
     def create_warn_label(self, text: str) -> MDLabel:
@@ -98,9 +98,9 @@ class BaseTab(ScrollView):
             text="⚠ " + text,
             theme_text_color="Custom",
             text_color=COLORS["neon_amber"],
-            font_size=dp(12),
+            font_size=dp(13),
             size_hint_y=None,
-            height=dp(22),
+            height=dp(26),
         )
 
     def create_input(self, hint: str, helper: str = "") -> MDTextField:
@@ -110,8 +110,8 @@ class BaseTab(ScrollView):
             helper_text=helper,
             helper_text_mode="persistent",
             size_hint_y=None,
-            height=dp(48),
-            font_size=dp(14),
+            height=dp(64),
+            font_size=dp(15),
         )
         return field
 
@@ -128,18 +128,18 @@ class TabHeader(MDBoxLayout):
             text=tr(title_key),
             theme_text_color="Custom",
             text_color=COLORS["text_primary"],
-            font_style="H6",
+            font_size=dp(22),
             bold=True,
             size_hint_y=None,
-            height=dp(30),
+            height=dp(36),
         ))
         warn = MDLabel(
             text="⚠ " + tr(warn_key),
             theme_text_color="Custom",
             text_color=COLORS["neon_amber"],
-            font_size=dp(12),
+            font_size=dp(13),
             size_hint_y=None,
-            height=dp(22),
+            height=dp(26),
         )
         self.add_widget(warn)
-        self.height = dp(56)
+        self.height = dp(70)

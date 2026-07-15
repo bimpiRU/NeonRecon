@@ -30,11 +30,12 @@ class OpsecTab(BaseTab):
             tr("stealth_btn"), self._on_stealth, icon="incognito"
         ))
 
-        tor_box = MDBoxLayout(orientation="horizontal", size_hint_y=None, height=dp(48))
+        tor_box = MDBoxLayout(orientation="horizontal", size_hint_y=None, height=dp(58))
         tor_label = MDLabel(
             text=tr("tor_toggle"),
             theme_text_color="Custom",
             text_color=COLORS["text_primary"],
+            font_size=dp(15),
             size_hint_x=0.75,
         )
         self.tor_switch = MDSwitch(active=False, size_hint_x=0.25)

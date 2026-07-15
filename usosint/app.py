@@ -26,7 +26,7 @@ from usosint.ui.osint_tab import OsintTab
 from usosint.ui.theme import COLORS, apply_theme
 from usosint.ui.widgets import NavButton
 
-APP_VERSION = "0.2"
+APP_VERSION = "0.3"
 
 NAV_ITEMS = [
     ("dashboard", "view-dashboard", "nav_dashboard"),
@@ -62,12 +62,17 @@ class USOSINTApp(MDApp):
         try:
             from usosint.core.platform import is_android
             if not is_android():
-                Window.size = (dp(1180), dp(800))
+                Window.size = (dp(1360), dp(860))
+                Window.minimum_width = dp(1024)
+                Window.minimum_height = dp(700)
         except Exception:
             pass
 
         root = MDBoxLayout(orientation="vertical", spacing=0)
         root.add_widget(self._build_header())
+        root.add_widget(MDBoxLayout(
+            size_hint_y=None, height=dp(1), md_bg_color=COLORS["border"],
+        ))
 
         body = MDBoxLayout(orientation="horizontal", spacing=0)
         body.add_widget(self._build_sidebar())
@@ -79,6 +84,9 @@ class USOSINTApp(MDApp):
         body.add_widget(right)
         root.add_widget(body)
 
+        root.add_widget(MDBoxLayout(
+            size_hint_y=None, height=dp(1), md_bg_color=COLORS["border"],
+        ))
         root.add_widget(self._build_statusbar())
 
         self._switch_tab("dashboard")
@@ -91,18 +99,18 @@ class USOSINTApp(MDApp):
         header = MDBoxLayout(
             orientation="horizontal",
             size_hint_y=None,
-            height=dp(52),
-            padding=(dp(14), 0, dp(8), 0),
-            spacing=dp(10),
+            height=dp(68),
+            padding=(dp(18), 0, dp(12), 0),
+            spacing=dp(12),
             md_bg_color=COLORS["bg_panel"],
         )
         header.add_widget(MDIcon(
             icon="hexagon-slice-6",
             theme_text_color="Custom",
             text_color=COLORS["neon_green"],
-            font_size=dp(26),
+            font_size=dp(34),
             size_hint=(None, None),
-            size=(dp(30), dp(30)),
+            size=(dp(40), dp(40)),
             pos_hint={"center_y": 0.5},
         ))
         title_box = MDBoxLayout(orientation="vertical", spacing=0)
@@ -111,13 +119,13 @@ class USOSINTApp(MDApp):
             markup=True,
             theme_text_color="Custom",
             text_color=COLORS["text_primary"],
-            font_size=dp(16),
+            font_size=dp(21),
         ))
         title_box.add_widget(MDLabel(
             text=tr("app_subtitle"),
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"],
-            font_size=dp(10),
+            font_size=dp(12),
         ))
         header.add_widget(title_box)
 
@@ -126,9 +134,9 @@ class USOSINTApp(MDApp):
             text=platform_label(),
             theme_text_color="Custom",
             text_color=COLORS["neon_blue"],
-            font_size=dp(11),
+            font_size=dp(13),
             size_hint_x=None,
-            width=dp(90),
+            width=dp(110),
             halign="right",
         ))
 
@@ -137,8 +145,10 @@ class USOSINTApp(MDApp):
             text=LANGUAGES[get_language()],
             theme_text_color="Custom",
             text_color=COLORS["text_primary"],
-            size_hint_x=None,
-            width=dp(110),
+            font_size=dp(13),
+            size_hint=(None, None),
+            size=(dp(130), dp(40)),
+            pos_hint={"center_y": 0.5},
             on_release=self._open_lang_menu,
         )
         header.add_widget(self.lang_button)
@@ -148,9 +158,9 @@ class USOSINTApp(MDApp):
         sidebar = MDBoxLayout(
             orientation="vertical",
             size_hint_x=None,
-            width=dp(170),
-            spacing=dp(2),
-            padding=(0, dp(8), 0, 0),
+            width=dp(228),
+            spacing=dp(4),
+            padding=(0, dp(14), 0, 0),
             md_bg_color=COLORS["bg_panel"],
         )
         for tab_id, icon, title_key in NAV_ITEMS:
@@ -170,18 +180,18 @@ class USOSINTApp(MDApp):
         bar = MDBoxLayout(
             orientation="horizontal",
             size_hint_y=None,
-            height=dp(30),
-            padding=(dp(12), 0, dp(12), 0),
-            spacing=dp(16),
+            height=dp(38),
+            padding=(dp(16), 0, dp(16), 0),
+            spacing=dp(18),
             md_bg_color=COLORS["bg_panel"],
         )
         self.status_dot = MDIcon(
             icon="circle",
             theme_text_color="Custom",
             text_color=COLORS["neon_green"],
-            font_size=dp(10),
+            font_size=dp(12),
             size_hint=(None, None),
-            size=(dp(14), dp(14)),
+            size=(dp(16), dp(16)),
             pos_hint={"center_y": 0.5},
         )
         bar.add_widget(self.status_dot)
@@ -189,16 +199,16 @@ class USOSINTApp(MDApp):
             text=tr("st_ready"),
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"],
-            font_size=dp(11),
+            font_size=dp(13),
         )
         bar.add_widget(self.status_text)
         self.session_text = MDLabel(
             text="",
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"],
-            font_size=dp(11),
+            font_size=dp(13),
             size_hint_x=None,
-            width=dp(200),
+            width=dp(240),
             halign="right",
         )
         bar.add_widget(self.session_text)
@@ -206,8 +216,10 @@ class USOSINTApp(MDApp):
             text=tr("stop_all"),
             theme_text_color="Custom",
             text_color=COLORS["neon_red"],
-            size_hint_x=None,
-            width=dp(90),
+            font_size=dp(13),
+            size_hint=(None, None),
+            size=(dp(130), dp(30)),
+            pos_hint={"center_y": 0.5},
             on_release=self._stop_all_tasks,
         )
         bar.add_widget(self.stop_button)
@@ -299,8 +311,8 @@ class USOSINTApp(MDApp):
         self.disclaimer_dialog = MDDialog(
             title="⚠ " + tr("disclaimer_title"),
             text=tr("disclaimer_text"),
-            size_hint=(0.9, None),
-            height=dp(400),
+            size_hint=(0.92, None),
+            height=dp(480),
             buttons=[
                 MDFlatButton(
                     text=tr("decline"),

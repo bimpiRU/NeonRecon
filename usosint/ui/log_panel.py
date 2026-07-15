@@ -47,26 +47,27 @@ class LogPanel(MDBoxLayout):
         header = MDBoxLayout(
             orientation="horizontal",
             size_hint_y=None,
-            height=dp(34),
-            padding=(dp(8), 0, dp(4), 0),
-            spacing=dp(4),
+            height=dp(46),
+            padding=(dp(12), 0, dp(8), 0),
+            spacing=dp(6),
             md_bg_color=COLORS["bg_panel"],
         )
         header.add_widget(MDIcon(
             icon="console-line",
             theme_text_color="Custom",
             text_color=COLORS["neon_green"],
-            font_size=dp(16),
-            size_hint_x=None,
-            width=dp(22),
+            font_size=dp(20),
+            size_hint=(None, None),
+            size=(dp(28), dp(28)),
+            pos_hint={"center_y": 0.5},
         ))
         self.title_label = MDLabel(
             text=tr("log_hint"),
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"],
-            font_size=dp(11),
+            font_size=dp(13),
             size_hint_x=None,
-            width=dp(120),
+            width=dp(190),
         )
         header.add_widget(self.title_label)
         # распорка, чтобы кнопки фильтров не сжимали заголовок
@@ -78,9 +79,9 @@ class LogPanel(MDBoxLayout):
                 theme_text_color="Custom",
                 text_color=COLORS["bg_dark"] if level == "ALL" else COLORS["text_secondary"],
                 md_bg_color=COLORS["neon_green"] if level == "ALL" else COLORS["bg_card"],
-                font_size=dp(10),
+                font_size=dp(12),
                 size_hint=(None, None),
-                size=(dp(52), dp(24)),
+                size=(dp(66), dp(30)),
                 pos_hint={"center_y": 0.5},
             )
             btn.bind(on_release=lambda inst, lv=level: self._set_filter(lv))
@@ -92,7 +93,8 @@ class LogPanel(MDBoxLayout):
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"],
             size_hint=(None, None),
-            size=(dp(30), dp(30)),
+            size=(dp(38), dp(38)),
+            pos_hint={"center_y": 0.5},
         )
         clear_btn.bind(on_release=lambda *_: self.clear())
         copy_btn = MDIconButton(
@@ -100,7 +102,8 @@ class LogPanel(MDBoxLayout):
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"],
             size_hint=(None, None),
-            size=(dp(30), dp(30)),
+            size=(dp(38), dp(38)),
+            pos_hint={"center_y": 0.5},
         )
         copy_btn.bind(on_release=lambda *_: self._copy())
         header.add_widget(clear_btn)
@@ -118,7 +121,7 @@ class LogPanel(MDBoxLayout):
             cols=1,
             size_hint_y=None,
             spacing=0,
-            padding=(dp(10), dp(4), dp(6), dp(4)),
+            padding=(dp(14), dp(6), dp(8), dp(6)),
         )
         self.lines_layout.bind(minimum_height=self.lines_layout.setter("height"))
         self.scroll.add_widget(self.lines_layout)
@@ -142,10 +145,10 @@ class LogPanel(MDBoxLayout):
             markup=True,
             theme_text_color="Custom",
             text_color=COLORS["text_primary"],
-            font_size=dp(11),
+            font_size=dp(13),
             size_hint_y=None,
         )
-        lbl.bind(texture_size=lambda inst, size: setattr(inst, "height", max(size[1], dp(16))))
+        lbl.bind(texture_size=lambda inst, size: setattr(inst, "height", max(size[1], dp(20))))
         return lbl
 
     def _rerender(self):

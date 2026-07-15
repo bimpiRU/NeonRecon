@@ -41,7 +41,7 @@ class DashboardTab(BaseTab):
     def _build(self):
         # --- система ---
         sys_card = self.create_card(tr("sys_info"), icon="monitor-dashboard")
-        grid = MDGridLayout(cols=2, spacing=dp(6), size_hint_y=None)
+        grid = MDGridLayout(cols=2, spacing=dp(8), size_hint_y=None)
         grid.bind(minimum_height=grid.setter("height"))
 
         local_ip = self._detect_ip()
@@ -60,7 +60,7 @@ class DashboardTab(BaseTab):
         tools_card = self.create_card(tr("tools_status"), icon="tools")
         chips = MDGridLayout(
             cols=3,
-            spacing=dp(6),
+            spacing=dp(10),
             size_hint_y=None,
             adaptive_height=True,
         )
@@ -74,7 +74,7 @@ class DashboardTab(BaseTab):
         # --- сущности ---
         ent_card = self.create_card(tr("entities"), icon="graph-outline")
         self.entities_grid = MDGridLayout(
-            cols=2, spacing=dp(4), size_hint_y=None, adaptive_height=True
+            cols=2, spacing=dp(8), size_hint_y=None, adaptive_height=True
         )
         self.entities_empty = self.create_label(tr("entities_empty"), secondary=True)
         ent_card.add_widget(self.entities_empty)
@@ -82,7 +82,7 @@ class DashboardTab(BaseTab):
 
         # --- быстрые действия ---
         qa_card = self.create_card(tr("quick_actions"), icon="lightning-bolt")
-        qa_box = MDBoxLayout(orientation="horizontal", spacing=dp(8), size_hint_y=None, height=dp(44))
+        qa_box = MDBoxLayout(orientation="horizontal", spacing=dp(10), size_hint_y=None, height=dp(52))
         from usosint.modules.export import ExportManager
         self._export_manager = ExportManager(self.logger, self.executor)
         report_btn = self.create_button(
@@ -91,7 +91,7 @@ class DashboardTab(BaseTab):
             icon="file-document-outline",
         )
         report_btn.size_hint_x = None
-        report_btn.width = dp(320)
+        report_btn.width = dp(360)
         qa_box.add_widget(report_btn)
         qa_card.add_widget(qa_box)
 
@@ -100,9 +100,9 @@ class DashboardTab(BaseTab):
             text=text,
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"] if secondary else COLORS["text_primary"],
-            font_size=dp(12),
+            font_size=dp(14),
             size_hint_y=None,
-            height=dp(22),
+            height=dp(26),
         )
 
     @staticmethod
@@ -132,7 +132,7 @@ class DashboardTab(BaseTab):
         self.entities_grid.clear_widgets()
         if not entities:
             self.entities_empty.text = tr("entities_empty")
-            self.entities_empty.height = dp(22)
+            self.entities_empty.height = dp(26)
             return
         self.entities_empty.text = ""
         self.entities_empty.height = 0
@@ -145,8 +145,8 @@ class DashboardTab(BaseTab):
                     text=value,
                     theme_text_color="Custom",
                     text_color=COLORS["neon_green"],
-                    font_size=dp(11),
+                    font_size=dp(13),
                     size_hint_y=None,
-                    height=dp(18),
+                    height=dp(22),
                 ))
             self.entities_grid.add_widget(box)

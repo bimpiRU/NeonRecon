@@ -13,13 +13,13 @@ class NeonCard(MDCard):
 
     def __init__(self, title: str = "", icon: str = "", **kwargs):
         kwargs.setdefault("orientation", "vertical")
-        kwargs.setdefault("padding", (dp(14), dp(10), dp(14), dp(14)))
-        kwargs.setdefault("spacing", dp(8))
+        kwargs.setdefault("padding", (dp(20), dp(16), dp(20), dp(20)))
+        kwargs.setdefault("spacing", dp(12))
         kwargs.setdefault("size_hint", (1, None))
         kwargs.setdefault("md_bg_color", COLORS["bg_card"])
         kwargs.setdefault("line_color", COLORS["border"])
         kwargs.setdefault("line_width", 1.0)
-        kwargs.setdefault("radius", [dp(8)])
+        kwargs.setdefault("radius", [dp(14)])
         kwargs.setdefault("elevation", 0)
         super().__init__(**kwargs)
         self.bind(minimum_height=self.setter("height"))
@@ -28,24 +28,24 @@ class NeonCard(MDCard):
             header = MDBoxLayout(
                 orientation="horizontal",
                 size_hint_y=None,
-                height=dp(26),
-                spacing=dp(8),
+                height=dp(32),
+                spacing=dp(10),
             )
             if icon:
                 header.add_widget(MDIcon(
                     icon=icon,
                     theme_text_color="Custom",
                     text_color=COLORS["neon_green"],
-                    font_size=dp(18),
+                    font_size=dp(22),
                     size_hint=(None, None),
-                    size=(dp(24), dp(24)),
+                    size=(dp(28), dp(28)),
                     pos_hint={"center_y": 0.5},
                 ))
             header.add_widget(MDLabel(
                 text=title,
                 theme_text_color="Custom",
                 text_color=COLORS["neon_blue"],
-                font_style="Subtitle1",
+                font_size=dp(17),
                 bold=True,
             ))
             self.add_widget(header)
@@ -57,9 +57,9 @@ class StatusChip(MDBoxLayout):
     def __init__(self, text: str, ok: bool = True, **kwargs):
         kwargs.setdefault("orientation", "horizontal")
         kwargs.setdefault("size_hint", (None, None))
-        kwargs.setdefault("height", dp(26))
-        kwargs.setdefault("padding", (dp(8), 0, dp(8), 0))
-        kwargs.setdefault("spacing", dp(6))
+        kwargs.setdefault("height", dp(32))
+        kwargs.setdefault("padding", (dp(12), 0, dp(12), 0))
+        kwargs.setdefault("spacing", dp(8))
         super().__init__(**kwargs)
 
         color = COLORS["neon_green"] if ok else COLORS["neon_red"]
@@ -67,16 +67,16 @@ class StatusChip(MDBoxLayout):
             icon="check-circle" if ok else "close-circle",
             theme_text_color="Custom",
             text_color=color,
-            font_size=dp(14),
+            font_size=dp(16),
             size_hint=(None, None),
-            size=(dp(16), dp(16)),
+            size=(dp(20), dp(20)),
             pos_hint={"center_y": 0.5},
         ))
         lbl = MDLabel(
             text=text,
             theme_text_color="Custom",
             text_color=COLORS["text_primary"] if ok else COLORS["text_secondary"],
-            font_size=dp(12),
+            font_size=dp(14),
             size_hint_x=None,
         )
         lbl.bind(texture_size=lambda inst, size: setattr(inst, "width", size[0]))
@@ -90,9 +90,9 @@ class NavButton(MDBoxLayout):
     def __init__(self, icon: str, text: str, callback, **kwargs):
         kwargs.setdefault("orientation", "horizontal")
         kwargs.setdefault("size_hint_y", None)
-        kwargs.setdefault("height", dp(48))
-        kwargs.setdefault("padding", (dp(14), 0, dp(8), 0))
-        kwargs.setdefault("spacing", dp(10))
+        kwargs.setdefault("height", dp(58))
+        kwargs.setdefault("padding", (dp(18), 0, dp(12), 0))
+        kwargs.setdefault("spacing", dp(14))
         super().__init__(**kwargs)
         self._callback = callback
         self._active = False
@@ -101,16 +101,16 @@ class NavButton(MDBoxLayout):
             icon=icon,
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"],
-            font_size=dp(20),
+            font_size=dp(24),
             size_hint=(None, None),
-            size=(dp(24), dp(24)),
+            size=(dp(28), dp(28)),
             pos_hint={"center_y": 0.5},
         )
         self.label_widget = MDLabel(
             text=text,
             theme_text_color="Custom",
             text_color=COLORS["text_secondary"],
-            font_size=dp(14),
+            font_size=dp(16),
         )
         self.add_widget(self.icon_widget)
         self.add_widget(self.label_widget)

@@ -111,21 +111,28 @@ class CommandExecutor:
     @staticmethod
     def _popen_kwargs() -> dict:
         """Платформенные параметры для изоляции группы процессов."""
-        if os.name == "posix":
+        # preexec_fn опасен в многопоточных приложениях и нестабилен на Android
+        if os.name == "posix" and "ANDROID_STORAGE" not in os.environ:
             return {"preexec_fn": os.setsid}
-        return {"creationflags": getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)}
+        if os.name == "nt":
+            return {"creationflags": getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)}
+        return {}
 
     @staticmethod
     def _kill_process_tree(process: subprocess.Popen):
         """Убить процесс и всё его дерево."""
         try:
-            if os.name == "posix":
+            if os.name == "posix" and "ANDROID_STORAGE" not in os.environ:
                 os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-            else:
+            elif os.name == "nt":
                 subprocess.run(
                     ["taskkill", "/F", "/T", "/PID", str(process.pid)],
                     capture_output=True,
                 )
+            else:
+                # Android: без setsid группа совпадает с группой приложения —
+                # killpg убил бы и само приложение, убиваем только процесс.
+                process.kill()
         except Exception:
             try:
                 process.kill()
