@@ -24,9 +24,9 @@ from usosint.ui.network_tab import NetworkTab
 from usosint.ui.opsec_tab import OpsecTab
 from usosint.ui.osint_tab import OsintTab
 from usosint.ui.theme import COLORS, apply_theme
-from usosint.ui.widgets import NavButton
+from usosint.ui.widgets import BottomNavButton, NavButton
 
-APP_VERSION = "0.4"
+APP_VERSION = "0.5"
 
 NAV_ITEMS = [
     ("dashboard", "view-dashboard", "nav_dashboard"),
@@ -53,8 +53,19 @@ class USOSINTApp(MDApp):
 
         lang = config.get("language", "ru")
         set_language(lang)
+        self._mobile = None
+        self._bottom_nav_buttons = {}
 
     # ---------- построение ----------
+
+    @staticmethod
+    def _mobile_width() -> bool:
+        """Узкая ширина окна — переключаемся на мобильную раскладку."""
+        return Window.width < dp(940)
+
+    def _is_mobile(self) -> bool:
+        from usosint.core.platform import is_android
+        return is_android() or self._mobile_width()
 
     def build(self):
         apply_theme(self)
@@ -74,26 +85,71 @@ class USOSINTApp(MDApp):
             size_hint_y=None, height=dp(1), md_bg_color=COLORS["border"],
         ))
 
-        body = MDBoxLayout(orientation="horizontal", spacing=0)
-        body.add_widget(self._build_sidebar())
+        self._body = MDBoxLayout(orientation="horizontal", spacing=0)
+        self.sidebar = self._build_sidebar()
+        self._body.add_widget(self.sidebar)
 
         right = MDBoxLayout(orientation="vertical", spacing=0)
         self.content_area = MDBoxLayout(orientation="vertical", size_hint_y=0.72)
         right.add_widget(self.content_area)
         right.add_widget(LogPanel(self.logger, size_hint_y=0.28))
-        body.add_widget(right)
-        root.add_widget(body)
+        self._body.add_widget(right)
+        root.add_widget(self._body)
 
         root.add_widget(MDBoxLayout(
             size_hint_y=None, height=dp(1), md_bg_color=COLORS["border"],
         ))
+        self.bottom_nav = self._build_bottom_nav()
         root.add_widget(self._build_statusbar())
+
+        self._mobile = None
+        self._root_ref = root
+        self._apply_layout_mode()
+        Window.bind(width=lambda *_: self._apply_layout_mode())
 
         self._switch_tab("dashboard")
         self.executor.add_listener(self._on_tasks_changed)
         Clock.schedule_interval(self._tick, 1.0)
         Clock.schedule_once(lambda dt: self.show_disclaimer(), 0.5)
         return root
+
+    def _apply_layout_mode(self):
+        """Переключить раскладку desktop <-> mobile по ширине окна/платформе."""
+        mobile = self._is_mobile()
+        if mobile == self._mobile:
+            return
+        self._mobile = mobile
+        root = self._root_ref
+        if mobile:
+            if self.sidebar.parent is not None:
+                self._body.remove_widget(self.sidebar)
+            if self.bottom_nav.parent is None:
+                # вставляем над статус-баром (children в Kivy — в обратном порядке)
+                root.add_widget(self.bottom_nav, index=1)
+            self.subtitle_label.text = ""
+        else:
+            if self.sidebar.parent is None:
+                self._body.add_widget(self.sidebar, index=1)
+            if self.bottom_nav.parent is not None:
+                root.remove_widget(self.bottom_nav)
+            self.subtitle_label.text = tr("app_subtitle")
+
+    def _build_bottom_nav(self) -> MDBoxLayout:
+        bar = MDBoxLayout(
+            orientation="horizontal",
+            size_hint_y=None,
+            height=dp(58),
+            md_bg_color=COLORS["bg_panel"],
+        )
+        self._bottom_nav_buttons = {}
+        for tab_id, icon, _title_key in NAV_ITEMS:
+            btn = BottomNavButton(
+                icon=icon,
+                callback=lambda tid=tab_id: self._switch_tab(tid),
+            )
+            self._bottom_nav_buttons[tab_id] = btn
+            bar.add_widget(btn)
+        return bar
 
     def _build_header(self) -> MDBoxLayout:
         header = MDBoxLayout(
@@ -128,6 +184,7 @@ class USOSINTApp(MDApp):
             font_size=dp(12),
         ))
         header.add_widget(title_box)
+        self.subtitle_label = title_box.children[0]
 
         # чип платформы
         header.add_widget(MDLabel(
@@ -242,6 +299,8 @@ class USOSINTApp(MDApp):
         self.content_area.clear_widgets()
         self.content_area.add_widget(self._tabs[tab_id])
         for tid, btn in self._nav_buttons.items():
+            btn.set_active(tid == tab_id)
+        for tid, btn in self._bottom_nav_buttons.items():
             btn.set_active(tid == tab_id)
 
     # ---------- статус-бар ----------

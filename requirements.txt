@@ -3,3 +3,4 @@ kivymd==1.2.0
 pillow>=10.0.0
 requests>=2.31.0
 urllib3>=2.0.0
+phonenumbers>=8.13.0

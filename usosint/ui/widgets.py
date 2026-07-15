@@ -132,3 +132,44 @@ class NavButton(MDBoxLayout):
                 self._callback()
             return True
         return super().on_touch_down(touch)
+
+
+class BottomNavButton(MDBoxLayout):
+    """Кнопка нижней навигации (мобильный режим): только иконка, без подписи."""
+
+    def __init__(self, icon: str, callback, **kwargs):
+        kwargs.setdefault("orientation", "vertical")
+        kwargs.setdefault("size_hint_x", 1)
+        kwargs.setdefault("size_hint_y", None)
+        kwargs.setdefault("height", dp(56))
+        super().__init__(**kwargs)
+        self._callback = callback
+        self._active = False
+
+        self.indicator = MDBoxLayout(
+            size_hint_y=None,
+            height=dp(3),
+            md_bg_color=(0, 0, 0, 0),
+        )
+        self.add_widget(self.indicator)
+        self.icon_widget = MDIcon(
+            icon=icon,
+            theme_text_color="Custom",
+            text_color=COLORS["text_secondary"],
+            font_size=dp(26),
+            halign="center",
+        )
+        self.add_widget(self.icon_widget)
+
+    def set_active(self, active: bool):
+        self._active = active
+        color = COLORS["neon_green"] if active else COLORS["text_secondary"]
+        self.icon_widget.text_color = color
+        self.indicator.md_bg_color = COLORS["neon_green"] if active else (0, 0, 0, 0)
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            if callable(self._callback):
+                self._callback()
+            return True
+        return super().on_touch_down(touch)
