@@ -56,9 +56,11 @@ class StatusChip(MDBoxLayout):
 
     def __init__(self, text: str, ok: bool = True, **kwargs):
         kwargs.setdefault("orientation", "horizontal")
-        kwargs.setdefault("size_hint", (None, None))
+        # полная ширина ячейки грида: текст не переносится, нет циклической
+        # привязки ширины к texture_size (она сжимала метку до переноса)
+        kwargs.setdefault("size_hint", (1, None))
         kwargs.setdefault("height", dp(32))
-        kwargs.setdefault("padding", (dp(12), 0, dp(12), 0))
+        kwargs.setdefault("padding", (dp(6), 0, dp(6), 0))
         kwargs.setdefault("spacing", dp(8))
         super().__init__(**kwargs)
 
@@ -72,16 +74,12 @@ class StatusChip(MDBoxLayout):
             size=(dp(20), dp(20)),
             pos_hint={"center_y": 0.5},
         ))
-        lbl = MDLabel(
+        self.add_widget(MDLabel(
             text=text,
             theme_text_color="Custom",
             text_color=COLORS["text_primary"] if ok else COLORS["text_secondary"],
             font_size=dp(14),
-            size_hint_x=None,
-        )
-        lbl.bind(texture_size=lambda inst, size: setattr(inst, "width", size[0]))
-        self.add_widget(lbl)
-        self.bind(minimum_width=self.setter("width"))
+        ))
 
 
 class NavButton(MDBoxLayout):
