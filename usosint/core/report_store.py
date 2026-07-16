@@ -1,10 +1,13 @@
 """Сжатый архив отчётов приложения.
 
-Каждый отчёт — gzip-сжатый JSON (`<ts>_<kind>_<slug>.json.gz`) в ~/.usosint/reports.
-Метаданные читаются из имени файла (список без распаковки), содержимое —
-только при открытии. Степень сжатия — максимальная (9), текстовые логи
-сжимаются примерно в 8–12 раз. Архив ограничен MAX_REPORTS записями:
-самые старые удаляются автоматически.
+Каждый отчёт — gzip-сжатый JSON (`<ts>_<kind>_<slug>.json.gz`) в директории
+данных приложения (см. `core.storage`: на десктопе ~/.usosint/reports,
+на Android — приватное хранилище). Метаданные читаются из имени файла
+(список без распаковки), содержимое — только при открытии. Степень сжатия —
+максимальная (9), текстовые логи сжимаются примерно в 8–12 раз. Архив
+ограничен MAX_REPORTS записями: самые старые удаляются автоматически.
+Если записываемой директории нет вообще, хранилище деградирует в
+«отключённый» режим без исключений.
 """
 
 import gzip
@@ -14,8 +17,7 @@ import re
 from datetime import datetime
 from typing import Dict, List, Optional
 
-_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".usosint")
-REPORTS_DIR = os.path.join(_CONFIG_DIR, "reports")
+from usosint.core import storage
 
 MAX_REPORTS = 200
 _GZIP_LEVEL = 9
@@ -30,17 +32,34 @@ def _slugify(text: str, limit: int = 40) -> str:
 
 
 class ReportStore:
-    """Хранилище сжатых отчётов с ротацией."""
+    """Хранилище сжатых отчётов с ротацией.
 
-    def __init__(self, reports_dir: str = REPORTS_DIR, max_reports: int = MAX_REPORTS):
-        self.dir = reports_dir
+    Если записываемой директории нет (экзотические окружения), `enabled`
+    становится False и все операции превращаются в безопасные no-op:
+    save -> "", list -> [], load -> None, delete -> False, clear -> 0.
+    """
+
+    def __init__(self, reports_dir: Optional[str] = None, max_reports: int = MAX_REPORTS):
         self.max_reports = max_reports
-        os.makedirs(self.dir, exist_ok=True)
+        if reports_dir is None:
+            base = storage.data_dir()
+            reports_dir = os.path.join(base, "reports") if base else None
+        self.dir = reports_dir
+        self.enabled = False
+        if not self.dir:
+            return
+        try:
+            os.makedirs(self.dir, exist_ok=True)
+            self.enabled = True
+        except OSError:
+            self.dir = None
 
     # ---------- запись ----------
 
     def save(self, kind: str, target: str, title: str, lines: List[str]) -> str:
-        """Сохранить отчёт (gzip-9). Возвращает id отчёта (имя файла)."""
+        """Сохранить отчёт (gzip-9). Возвращает id отчёта (имя файла) или ""."""
+        if not self.enabled:
+            return ""
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         fname = f"{ts}_{_slugify(kind, 16)}_{_slugify(target or title)}.json.gz"
         payload = {
@@ -52,8 +71,11 @@ class ReportStore:
             "lines": list(lines),
         }
         blob = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        with gzip.open(os.path.join(self.dir, fname), "wb", compresslevel=_GZIP_LEVEL) as fh:
-            fh.write(blob)
+        try:
+            with gzip.open(os.path.join(self.dir, fname), "wb", compresslevel=_GZIP_LEVEL) as fh:
+                fh.write(blob)
+        except OSError:
+            return ""
         self._rotate()
         return fname
 
@@ -68,9 +90,11 @@ class ReportStore:
 
     def _files(self) -> List[str]:
         """Имена файлов отчётов, отсортированные по дате (старые первыми)."""
+        if not self.enabled:
+            return []
         try:
             names = [f for f in os.listdir(self.dir) if _FNAME_RE.match(f)]
-        except FileNotFoundError:
+        except (FileNotFoundError, OSError):
             return []
         return sorted(names)
 
@@ -128,7 +152,7 @@ class ReportStore:
 
     def delete(self, report_id: str) -> bool:
         """Удалить один отчёт."""
-        if not _FNAME_RE.match(report_id or ""):
+        if not self.enabled or not _FNAME_RE.match(report_id or ""):
             return False
         return self._remove(report_id)
 

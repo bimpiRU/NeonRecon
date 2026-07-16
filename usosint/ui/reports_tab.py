@@ -129,7 +129,10 @@ class ReportsTab(BaseTab):
             self.log(tr("rep_empty"), "WARN")
             return
         report_id = self.store.save("log", "session", tr("rep_log_title"), lines)
-        self.log(f"{tr('rep_saved')}: {report_id}", "OK")
+        if report_id:
+            self.log(f"{tr('rep_saved')}: {report_id}", "OK")
+        else:
+            self.log(tr("rep_save_fail"), "WARN")
         self.refresh()
 
     def _on_clear(self, *_):

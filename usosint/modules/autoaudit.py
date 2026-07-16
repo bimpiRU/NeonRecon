@@ -146,7 +146,13 @@ class AutoAudit:
         )
         try:
             report_id = self.store.save("autoaudit", t, f"Автоаудит {t}", lines)
-            size = format_size(os.path.getsize(os.path.join(self.store.dir, report_id)))
-            tee.success(f"[АВТОАУДИТ] Готово. Отчёт в архиве: {report_id} ({size}, gzip).")
+            if report_id:
+                size = format_size(os.path.getsize(os.path.join(self.store.dir, report_id)))
+                tee.success(f"[АВТОАУДИТ] Готово. Отчёт в архиве: {report_id} ({size}, gzip).")
+            else:
+                tee.warning(
+                    "[АВТОАУДИТ] Готово, но архив недоступен на этом устройстве — "
+                    "отчёт не сохранён (лог выше)."
+                )
         except Exception as exc:
             tee.error(f"[АВТОАУДИТ] Не удалось сохранить отчёт: {exc}")

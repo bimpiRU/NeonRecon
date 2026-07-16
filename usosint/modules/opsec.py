@@ -107,7 +107,12 @@ class TorManager:
 
     def _start_tor_direct(self) -> bool:
         """Запустить tor напрямую как демон (без systemd), от имени пользователя."""
-        data_dir = os.path.join(os.path.expanduser("~"), ".usosint", "tor-data")
+        from usosint.core import storage
+        base = storage.data_dir()
+        if not base:
+            self.logger.error("[OPSEC] Нет записываемой директории для данных tor.")
+            return False
+        data_dir = os.path.join(base, "tor-data")
         os.makedirs(data_dir, exist_ok=True)
         self.logger.info("[OPSEC] systemd недоступен — запуск tor напрямую...")
         self.executor.run_simple([

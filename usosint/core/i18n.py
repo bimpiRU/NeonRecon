@@ -761,6 +761,13 @@ _STRINGS["zh"].update({
     "aa_enter_target": "请输入域名或 IP",
 })
 
+# v0.6.1: архив недоступен (нет записываемой директории)
+_STRINGS["ru"].update({"rep_save_fail": "Архив недоступен на этом устройстве — отчёт не сохранён"})
+_STRINGS["en"].update({"rep_save_fail": "Archive unavailable on this device — report not saved"})
+_STRINGS["es"].update({"rep_save_fail": "Archivo no disponible en este dispositivo: informe no guardado"})
+_STRINGS["de"].update({"rep_save_fail": "Archiv auf diesem Gerät nicht verfügbar — Bericht nicht gespeichert"})
+_STRINGS["zh"].update({"rep_save_fail": "此设备上存档不可用——报告未保存"})
+
 _current_language = "ru"
 _listeners = []
 

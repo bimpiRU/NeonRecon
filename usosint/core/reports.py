@@ -15,10 +15,22 @@ class ReportGenerator:
         self.logger = logger
 
     def generate(self, output_path: Optional[str] = None) -> str:
-        """Создать FINAL_REPORT.txt на рабочем столе или по указанному пути."""
+        """Создать FINAL_REPORT.txt на рабочем столе или по указанному пути.
+
+        На Android рабочего стола нет — отчёт пишется в директорию данных
+        приложения (core.storage). Если и она недоступна, возвращается "".
+        """
         if output_path is None:
-            desktop = ensure_dir(get_desktop_path())
-            output_path = os.path.join(desktop, "FINAL_REPORT.txt")
+            try:
+                desktop = ensure_dir(get_desktop_path())
+                output_path = os.path.join(desktop, "FINAL_REPORT.txt")
+            except OSError:
+                from usosint.core import storage
+                base = storage.data_dir()
+                if not base:
+                    self.logger.error("Не удалось сохранить отчёт: нет записываемой директории")
+                    return ""
+                output_path = os.path.join(base, "FINAL_REPORT.txt")
 
         header = [
             "=" * 70,
