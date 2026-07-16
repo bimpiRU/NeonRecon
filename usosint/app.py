@@ -23,16 +23,18 @@ from usosint.ui.log_panel import LogPanel
 from usosint.ui.network_tab import NetworkTab
 from usosint.ui.opsec_tab import OpsecTab
 from usosint.ui.osint_tab import OsintTab
+from usosint.ui.reports_tab import ReportsTab
 from usosint.ui.theme import COLORS, apply_theme
 from usosint.ui.widgets import BottomNavButton, NavButton
 
-APP_VERSION = "0.5"
+APP_VERSION = "0.6"
 
 NAV_ITEMS = [
     ("dashboard", "view-dashboard", "nav_dashboard"),
     ("opsec", "shield-lock", "nav_opsec"),
     ("network", "radar", "nav_network"),
     ("osint", "magnify-scan", "nav_osint"),
+    ("reports", "archive-outline", "nav_reports"),
     ("export", "export", "nav_export"),
 ]
 
@@ -292,12 +294,24 @@ class USOSINTApp(MDApp):
                 "opsec": OpsecTab,
                 "network": NetworkTab,
                 "osint": OsintTab,
+                "reports": ReportsTab,
                 "export": ExportTab,
             }[tab_id]
             self._tabs[tab_id] = factory(self.logger, self.executor)
 
+        tab = self._tabs[tab_id]
         self.content_area.clear_widgets()
-        self.content_area.add_widget(self._tabs[tab_id])
+        self.content_area.add_widget(tab)
+        # плавное появление содержимого
+        from kivy.animation import Animation
+        tab.opacity = 0
+        Animation.cancel_all(tab, "opacity")
+        Animation(opacity=1, duration=0.18, t="out_quad").start(tab)
+        if hasattr(tab, "on_show"):
+            try:
+                tab.on_show()
+            except Exception:
+                pass
         for tid, btn in self._nav_buttons.items():
             btn.set_active(tid == tab_id)
         for tid, btn in self._bottom_nav_buttons.items():

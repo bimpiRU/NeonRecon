@@ -3,6 +3,7 @@
 from usosint.core.executor import CommandExecutor
 from usosint.core.i18n import tr
 from usosint.core.logger import AppLogger
+from usosint.modules.autoaudit import AutoAudit
 from usosint.modules.osint import (
     CrtShEnum,
     DnsHistory,
@@ -33,8 +34,17 @@ class OsintTab(BaseTab):
         self.phone_intel = PhoneIntel(logger, executor)
         self.email_intel = EmailIntel(logger, executor)
         self.username_intel = UsernameIntel(logger, executor)
+        self.auto_audit = AutoAudit(logger, executor)
 
         self.layout.add_widget(TabHeader("osint_title", "osint_warn"))
+
+        # --- Автоаудит: ввёл цель — получил полный отчёт ---
+        aa_card = self.create_card(tr("aa_title"), icon="robot-outline")
+        self.aa_input = self.create_input(tr("aa_hint"), tr("aa_helper"))
+        aa_card.add_widget(self.aa_input)
+        aa_card.add_widget(self.create_button(
+            tr("aa_btn"), self._on_auto_audit, icon="play-circle-outline"
+        ))
 
         # --- Доменная разведка (пассивная) ---
         passive_card = self.create_card(tr("passive"), icon="magnify-scan")
@@ -131,6 +141,14 @@ class OsintTab(BaseTab):
             self.run_in_thread(self.subdomains.run, domain, name="subfinder")
 
     # ---------- идентификаторы ----------
+
+    def _on_auto_audit(self, instance):
+        target = self.aa_input.text.strip()
+        if not target:
+            self.log(tr("aa_enter_target"), "WARN")
+            return
+        self.log(f"{tr('launching')}: {tr('aa_title')} {target}...")
+        self.run_in_thread(self.auto_audit.run, target, name="auto-audit")
 
     def _on_ip_intel(self, instance):
         ip = self.ip_input.text.strip()

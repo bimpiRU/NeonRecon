@@ -83,17 +83,26 @@ class StatusChip(MDBoxLayout):
 
 
 class NavButton(MDBoxLayout):
-    """Кнопка боковой навигации с иконкой и подсветкой активного состояния."""
+    """Кнопка боковой навигации с иконкой, hover-подсветкой и индикатором активности."""
 
     def __init__(self, icon: str, text: str, callback, **kwargs):
         kwargs.setdefault("orientation", "horizontal")
         kwargs.setdefault("size_hint_y", None)
         kwargs.setdefault("height", dp(58))
-        kwargs.setdefault("padding", (dp(18), 0, dp(12), 0))
+        kwargs.setdefault("padding", (0, 0, dp(12), 0))
         kwargs.setdefault("spacing", dp(14))
         super().__init__(**kwargs)
         self._callback = callback
         self._active = False
+        self._hovered = False
+
+        # неоновый индикатор активной вкладки слева
+        self.indicator = MDBoxLayout(
+            size_hint_x=None,
+            width=dp(3),
+            md_bg_color=(0, 0, 0, 0),
+        )
+        self.add_widget(self.indicator)
 
         self.icon_widget = MDIcon(
             icon=icon,
@@ -113,16 +122,39 @@ class NavButton(MDBoxLayout):
         self.add_widget(self.icon_widget)
         self.add_widget(self.label_widget)
 
+        # hover-подсветка только там, где есть мышь (десктоп)
+        from usosint.core.platform import is_android
+        if not is_android():
+            from kivy.core.window import Window
+            Window.bind(mouse_pos=self._on_mouse_pos)
+
+    def _on_mouse_pos(self, _window, pos):
+        if not self.get_root_window():
+            return
+        inside = self.collide_point(*self.to_widget(*pos))
+        if inside != self._hovered:
+            self._hovered = inside
+            self._repaint()
+
+    def _repaint(self):
+        color = COLORS["neon_green"] if self._active else COLORS["text_secondary"]
+        self.icon_widget.text_color = color
+        self.label_widget.text_color = color
+        self.label_widget.bold = self._active
+        self.indicator.md_bg_color = COLORS["neon_green"] if self._active else (0, 0, 0, 0)
+        if self._active:
+            self.md_bg_color = COLORS["bg_card"]
+        elif self._hovered:
+            self.md_bg_color = COLORS["border"]
+        else:
+            self.md_bg_color = (0, 0, 0, 0)
+
     def set_text(self, text: str):
         self.label_widget.text = text
 
     def set_active(self, active: bool):
         self._active = active
-        color = COLORS["neon_green"] if active else COLORS["text_secondary"]
-        self.icon_widget.text_color = color
-        self.label_widget.text_color = color
-        self.label_widget.bold = active
-        self.md_bg_color = COLORS["bg_card"] if active else (0, 0, 0, 0)
+        self._repaint()
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
