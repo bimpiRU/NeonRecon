@@ -147,6 +147,33 @@ docker run --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix neonrecon g
 
 Публикация в Docker Hub: `docker login && docker tag neonrecon <user>/neonrecon:0.3 && docker push <user>/neonrecon:0.3`.
 
+## Тестирование и подключение реального Android-устройства
+
+**Эмулятор:** приложение протестировано на Android Emulator (API 30, x86_64) — полный цикл: запуск, принятие дисклеймера, переключение всех вкладок, автоаудит `example.com`, сохранение отчёта gzip-9 и просмотр архива во вкладке «Отчёты».
+
+**Реальный телефон по USB:**
+1. Включи режим разработчика и **«Отладка по USB»**.
+2. На HyperOS/Xiaomi/Redmi включи также **«Отладка по USB (настройки безопасности)**».
+3. В шторке выбери режим **«Передача файлов»** (MTP), а не «Только зарядка».
+4. Установи USB-драйвер производителя (например, **Xiaomi USB Driver** для HyperOS); иначе Windows не увидит ADB-интерфейс.
+5. При первом подключении на телефоне появится диалог RSA — нажми **OK**.
+
+```bash
+adb devices -l
+adb install -r NeonRecon.apk
+```
+
+**Реальный телефон по Wi-Fi (Android 11+):**
+1. Настройки → Для разработчиков → **Wireless debugging** → ON.
+2. «Pair with pairing code» → скопируй `IP:port` и 6-значный код.
+3. На ПК:
+
+```bash
+adb pair <IP>:<port> <pairing_code>
+adb connect <IP>:<port>
+adb install -r NeonRecon.apk
+```
+
 ## Структура проекта
 
 ```
